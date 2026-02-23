@@ -1,0 +1,70 @@
+{% comment %}
+  Prompt Form — Theme App Extension block
+  Merchants drag this block into any section via the Theme Editor.
+  Set the Form ID (ULID) from the Prompt Form app and the block
+  will fetch and render the form on the storefront.
+{% endcomment %}
+
+{% if block.settings.form_id != blank %}
+  <div
+    id="prompt-form-{{ block.id }}"
+    data-prompt-form
+    data-form-ulid="{{ block.settings.form_id }}"
+    data-api-url="{{ block.settings.api_url | default: '' }}"
+    style="max-width: {{ block.settings.max_width }}px; margin: 0 auto;"
+    {{ block.shopify_attributes }}
+  ></div>
+
+  {% comment %}
+    Load the widget script only once per page even if multiple
+    form blocks are present.
+  {% endcomment %}
+  <script>
+    (function() {
+      if (window.__pfWidgetLoaded) return;
+      window.__pfWidgetLoaded = true;
+      var s = document.createElement('script');
+      s.src = {{ 'form-widget.js' | asset_url | json }};
+      s.defer = true;
+      document.head.appendChild(s);
+    })();
+  </script>
+{% else %}
+  {% if request.design_mode %}
+    <div style="padding: 24px; background: #f9fafb; border: 2px dashed #d1d5db; border-radius: 8px; text-align: center; color: #6b7280; font-size: 14px; font-family: sans-serif;">
+      <strong style="display: block; margin-bottom: 4px; color: #374151;">Prompt Form</strong>
+      Open block settings and paste your Form ID to display a form here.
+    </div>
+  {% endif %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "Prompt Form",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "form_id",
+      "label": "Form ID",
+      "info": "Copy the Form ID (ULID) shown in the Prompt Form app under Form details."
+    },
+    {
+      "type": "text",
+      "id": "api_url",
+      "label": "App API URL",
+      "default": "https://your-app-url.com/api/public",
+      "info": "The public API URL of your Prompt Form app. Update this when you go live."
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Max width (px)",
+      "min": 300,
+      "max": 900,
+      "step": 50,
+      "default": 600
+    }
+  ]
+}
+{% endschema %}

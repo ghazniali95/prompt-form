@@ -1,0 +1,19 @@
+name = "Prompt Form"
+client_id = "352e9deba81fac32cb0727b95d682158"
+application_url = "https://50ac-182-177-34-129.ngrok-free.app"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "bigdatashopgpttest.myshopify.com"
+
+[access_scopes]
+scopes = "read_products,write_products,read_orders"
+
+[auth]
+redirect_urls = [
+    "https://50ac-182-177-34-129.ngrok-free.app/authenticate",
+]
+
+[webhooks]
+api_version = "2025-01"

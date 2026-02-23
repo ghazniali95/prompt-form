@@ -1,0 +1,20 @@
+{
+  "blocks": {
+    "form": {
+      "name": "Prompt Form",
+      "settings": {
+        "form_id": {
+          "label": "Form ID",
+          "info": "Copy the Form ID (ULID) shown in the Prompt Form app under Form details."
+        },
+        "api_url": {
+          "label": "App API URL",
+          "info": "The public API URL of your Prompt Form app. Update this when you go live."
+        },
+        "max_width": {
+          "label": "Max width (px)"
+        }
+      }
+    }
+  }
+}

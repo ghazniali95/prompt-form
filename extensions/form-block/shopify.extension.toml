@@ -1,0 +1,7 @@
+api_version = "2025-01"
+
+[[extensions]]
+uid = "5a317817-63e1-8305-4192-da6f50f3945d118ebdd1"
+type = "theme"
+name = "Prompt Form"
+handle = "prompt-form"
