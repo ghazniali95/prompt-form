@@ -21,7 +21,12 @@ class BillingService
      */
     public function createSubscription(User $user, string $plan): string
     {
-        $returnUrl = url('/billing/callback') . '?plan=' . $plan;
+        // Include shop in the return_url — Shopify only appends charge_id,
+        // not shop, so we must embed it ourselves.
+        $returnUrl = url('/billing/callback') . '?' . http_build_query([
+            'plan' => $plan,
+            'shop' => $user->name,
+        ]);
 
         $response = $user->api()->rest(
             'POST',
@@ -36,11 +41,11 @@ class BillingService
             ]
         );
 
-        if ($response->errors) {
-            throw new \RuntimeException('Shopify billing error: ' . json_encode($response->body));
+        if ($response['errors']) {
+            throw new \RuntimeException('Shopify billing error: ' . json_encode($response['body']));
         }
 
-        $charge = $response->body->recurring_application_charge;
+        $charge = $response['body']->recurring_application_charge;
 
         // Mark pending so we don't lose the charge_id if the user navigates away
         $user->update([
@@ -62,8 +67,19 @@ class BillingService
             []
         );
 
-        if ($response->errors) {
-            throw new \RuntimeException('Failed to activate charge: ' . json_encode($response->body));
+        if ($response['errors']) {
+            // Dev stores with auto_activate=T auto-activate the charge before we can
+            // call activate. Verify the charge is actually active via a GET before failing.
+            $check = $user->api()->rest(
+                'GET',
+                "/admin/api/2025-01/recurring_application_charges/{$chargeId}.json"
+            );
+
+            $status = $check['body']?->recurring_application_charge?->status ?? '';
+
+            if (! in_array($status, ['active', 'accepted'])) {
+                throw new \RuntimeException('Failed to activate charge: ' . json_encode($response['body']));
+            }
         }
 
         $user->update([

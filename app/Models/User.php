@@ -17,6 +17,7 @@ class User extends Authenticatable implements IShopModel
         'name',
         'email',
         'password',
+        'shopify_token',
         'plan',
         'shopify_charge_id',
         'subscription_status',
@@ -24,6 +25,7 @@ class User extends Authenticatable implements IShopModel
 
     protected $hidden = [
         'password',
+        'shopify_token',
         'remember_token',
     ];
 
@@ -31,8 +33,22 @@ class User extends Authenticatable implements IShopModel
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
         ];
+    }
+
+    /**
+     * The laravel-shopify package stores the Shopify access token via $shop->password.
+     * These accessors transparently redirect those reads/writes to the dedicated
+     * `shopify_token` column, keeping `password` free for real user auth.
+     */
+    public function getPasswordAttribute(): string
+    {
+        return $this->attributes['shopify_token'] ?? '';
+    }
+
+    public function setPasswordAttribute(string $value): void
+    {
+        $this->attributes['shopify_token'] = $value;
     }
 
     public function forms()

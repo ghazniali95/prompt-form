@@ -113,6 +113,7 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
     const [previewForm, setPreviewForm] = useState(null);
     const [submissionsForm, setSubmissionsForm] = useState(null);
     const [activePopover, setActivePopover] = useState(null);
+    const [limitError, setLimitError] = useState(null);
 
     useEffect(() => {
         Promise.all([fetchForms(), fetchStats()]).finally(() => setLoading(false));
@@ -134,6 +135,15 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
         } catch {
             // Stats are non-critical — fail silently
         }
+    };
+
+    const handleCreateNew = () => {
+        const formsLimit = stats?.forms_limit ?? null;
+        if (formsLimit !== null && forms.length >= formsLimit) {
+            setLimitError(`You've reached the ${formsLimit}-form limit on your ${stats?.plan ?? 'free'} plan. Upgrade to create more forms.`);
+            return;
+        }
+        onCreateNew();
     };
 
     const handleTurnOff = async (form) => {
@@ -238,10 +248,19 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
     return (
         <Page
             title="Forms"
-            primaryAction={{ content: 'Create form', onAction: onCreateNew }}
+            primaryAction={{ content: 'Create form', onAction: handleCreateNew }}
         >
             <BlockStack gap="400">
                 {error && <Banner tone="critical" onDismiss={() => setError(null)}>{error}</Banner>}
+
+                {limitError && (
+                    <Banner tone="warning" onDismiss={() => setLimitError(null)}>
+                        <InlineStack gap="100" wrap={false}>
+                            <span>{limitError}</span>
+                            <Button variant="plain" onClick={onNavigatePricing}>Upgrade your plan →</Button>
+                        </InlineStack>
+                    </Banner>
+                )}
 
                 {stats?.submissions_left === 0 && (
                     <Banner tone="critical">
@@ -276,7 +295,7 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
                     <Card>
                         <EmptyState
                             heading="Create your first form"
-                            action={{ content: 'Create form', onAction: onCreateNew }}
+                            action={{ content: 'Create form', onAction: handleCreateNew }}
                             image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                         >
                             <p>Use AI prompts to build interactive forms for your store.</p>

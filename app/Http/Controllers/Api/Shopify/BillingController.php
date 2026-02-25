@@ -8,10 +8,42 @@ use App\Services\PlanLimits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Osiset\ShopifyApp\Contracts\Queries\Shop as IShopQuery;
+use Osiset\ShopifyApp\Objects\Values\SessionToken;
 
 class BillingController extends Controller
 {
-    public function __construct(private BillingService $billing) {}
+    public function __construct(
+        private BillingService $billing,
+        private IShopQuery $shopQuery,
+    ) {}
+
+    /**
+     * Resolve the authenticated shop user.
+     *
+     * The verify.shopify middleware bypasses auth for any URI containing "/billing"
+     * (a package-level bypass for Shopify's own billing callback). For our own billing
+     * API routes we must manually decode the Bearer session token to get the user.
+     */
+    private function resolveUser(Request $request)
+    {
+        $user = Auth::user();
+        if ($user) {
+            return $user;
+        }
+
+        $raw = $request->bearerToken();
+        if (! $raw) {
+            return null;
+        }
+
+        try {
+            $token = SessionToken::fromNative($raw);
+            return $this->shopQuery->getByDomain($token->getShopDomain(), [], true);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
 
     /**
      * Create a Shopify recurring charge and return the confirmation URL.
@@ -22,11 +54,15 @@ class BillingController extends Controller
             'plan' => 'required|in:starter,growing',
         ]);
 
-        $user = Auth::user();
+        $user = $this->resolveUser($request);
+        if (! $user) {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
         $plan = $validated['plan'];
 
         // Prevent downgrade via API
-        if ($user->plan === 'growing' && $plan === 'starter') {
+        if (($user->plan ?? 'free') === 'growing' && $plan === 'starter') {
             return response()->json(['error' => 'Downgrade is not supported. Please cancel first.'], 422);
         }
 
@@ -34,6 +70,7 @@ class BillingController extends Controller
             $confirmationUrl = $this->billing->createSubscription($user, $plan);
             return response()->json(['data' => ['confirmation_url' => $confirmationUrl]]);
         } catch (\Throwable $e) {
+            \Log::error('BillingController@subscribe failed: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to create subscription. Please try again.'], 500);
         }
     }
@@ -41,9 +78,12 @@ class BillingController extends Controller
     /**
      * Cancel the active subscription.
      */
-    public function cancel(): JsonResponse
+    public function cancel(Request $request): JsonResponse
     {
-        $user = Auth::user();
+        $user = $this->resolveUser($request);
+        if (! $user) {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
 
         try {
             $this->billing->cancelSubscription($user);
@@ -56,10 +96,14 @@ class BillingController extends Controller
     /**
      * Return the current plan and usage stats.
      */
-    public function current(): JsonResponse
+    public function current(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        $plan = $user->plan ?? 'free';
+        $user = $this->resolveUser($request);
+        if (! $user) {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
+        $plan   = $user->plan ?? 'free';
         $limits = PlanLimits::forUser($user);
 
         $formsUsed       = $user->forms()->count();

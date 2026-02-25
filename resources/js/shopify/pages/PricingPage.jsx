@@ -144,7 +144,7 @@ function PlanCard({ plan, currentPlanId, onSubscribe, onCancel, loading }) {
     );
 }
 
-export default function PricingPage() {
+export default function PricingPage({ onBack }) {
     const api = useAuthenticatedFetch();
     const [currentPlanId, setCurrentPlanId] = useState(null);
     const [planLoading, setPlanLoading] = useState(true);
@@ -170,8 +170,10 @@ export default function PricingPage() {
         setError(null);
         try {
             const { data } = await api.post('/api/shopify/billing/subscribe', { plan: plan.id });
-            // Must redirect the top-level window so Shopify's billing page can load
-            window.top.location.href = data.data.confirmation_url;
+            // App Bridge v4 patches window.open to handle cross-origin parent-frame
+            // navigation correctly. window.top.location.href is blocked by browsers
+            // for cross-origin iframes; open(url, '_top') is the supported way.
+            open(data.data.confirmation_url, '_top');
         } catch (err) {
             setError(err?.response?.data?.error || 'Failed to start subscription. Please try again.');
             setLoading(null);
@@ -193,7 +195,7 @@ export default function PricingPage() {
     };
 
     return (
-        <Page title="Pricing">
+        <Page title="Pricing" backAction={{ content: 'Forms', onAction: onBack }}>
             <BlockStack gap="600">
 
                 {error      && <Banner tone="critical" onDismiss={() => setError(null)}>{error}</Banner>}

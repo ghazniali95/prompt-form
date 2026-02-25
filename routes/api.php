@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\Shopify\FormController;
 use App\Http\Controllers\Api\Shopify\AiGenerationController;
 use App\Http\Controllers\Api\Shopify\BillingController;
 use App\Http\Controllers\Api\Shopify\StatsController;
+use App\Http\Controllers\Api\Shopify\GdprController;
+use App\Http\Controllers\Api\Shopify\AppUninstalledController;
 use App\Http\Controllers\Api\Public\PublicFormController;
 
 /*
@@ -31,6 +33,21 @@ Route::middleware(['verify.shopify'])->prefix('shopify')->group(function () {
     Route::get('billing/current', [BillingController::class, 'current']);
     Route::post('billing/subscribe', [BillingController::class, 'subscribe']);
     Route::post('billing/cancel', [BillingController::class, 'cancel']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Shopify Webhooks (HMAC-verified, no session auth)
+|--------------------------------------------------------------------------
+*/
+Route::middleware([\App\Http\Middleware\VerifyShopifyWebhook::class])->prefix('webhooks')->group(function () {
+    // GDPR mandatory webhooks
+    Route::post('gdpr/customers-data-request', [GdprController::class, 'customersDataRequest']);
+    Route::post('gdpr/customers-redact',        [GdprController::class, 'customersRedact']);
+    Route::post('gdpr/shop-redact',             [GdprController::class, 'shopRedact']);
+
+    // App lifecycle
+    Route::post('app/uninstalled', AppUninstalledController::class);
 });
 
 /*

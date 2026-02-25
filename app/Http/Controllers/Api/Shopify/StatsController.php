@@ -23,10 +23,13 @@ class StatsController extends Controller
             ? null
             : max(0, $submissionLimit - $totalSubmissions);
 
+        $formLimit = $limits['forms'];
+
         return response()->json([
             'data' => [
                 'plan'             => $plan,
                 'total_forms'      => $totalForms,
+                'forms_limit'      => $formLimit === PHP_INT_MAX ? null : $formLimit,
                 'total_submissions' => $totalSubmissions,
                 'plan_limit'       => $submissionLimit === PHP_INT_MAX ? null : $submissionLimit,
                 'submissions_left' => $submissionsLeft,

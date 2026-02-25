@@ -231,16 +231,19 @@ PROMPT;
 
     public function generate(User $shop, string $prompt, ?int $formId = null): array
     {
+        $model = config('openai.model', 'gpt-4o');
+
         $generation = AiGeneration::create([
             'shop_id' => $shop->id,
             'form_id' => $formId,
             'prompt'  => $prompt,
+            'model'   => $model,
             'status'  => 'pending',
         ]);
 
         try {
             $response = OpenAI::chat()->create([
-                'model'    => config('openai.model', 'gpt-4o'),
+                'model'    => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => $this->systemPrompt],
                     ['role' => 'user', 'content' => $prompt],

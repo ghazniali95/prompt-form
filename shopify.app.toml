@@ -1,6 +1,6 @@
 name = "Prompt Form"
 client_id = "352e9deba81fac32cb0727b95d682158"
-application_url = "https://c6ae-182-177-34-129.ngrok-free.app"
+application_url = "https://promptform.mesh99.com"
 embedded = true
 
 [build]
@@ -12,8 +12,24 @@ scopes = "read_products,write_products,read_orders"
 
 [auth]
 redirect_urls = [
-    "https://c6ae-182-177-34-129.ngrok-free.app/authenticate",
+    "https://promptform.mesh99.com/authenticate",
 ]
 
 [webhooks]
 api_version = "2025-01"
+
+  [[webhooks.subscriptions]]
+  topics = ["customers/data_request"]
+  uri = "/api/webhooks/gdpr/customers-data-request"
+
+  [[webhooks.subscriptions]]
+  topics = ["customers/redact"]
+  uri = "/api/webhooks/gdpr/customers-redact"
+
+  [[webhooks.subscriptions]]
+  topics = ["shop/redact"]
+  uri = "/api/webhooks/gdpr/shop-redact"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "/api/webhooks/app/uninstalled"
