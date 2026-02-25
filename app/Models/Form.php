@@ -15,6 +15,10 @@ class Form extends Model
         'styles',
         'steps',
         'settings',
+        'display',
+        'image',
+        'cookies',
+        'post_submit',
         'is_published',
     ];
 
@@ -25,6 +29,10 @@ class Form extends Model
             'styles'       => 'array',
             'steps'        => 'array',
             'settings'     => 'array',
+            'display'      => 'array',
+            'image'        => 'array',
+            'cookies'      => 'array',
+            'post_submit'  => 'array',
             'is_published' => 'boolean',
         ];
     }

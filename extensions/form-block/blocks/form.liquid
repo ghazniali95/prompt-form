@@ -1,8 +1,7 @@
 {% comment %}
   Prompt Form — Theme App Extension block
   Merchants drag this block into any section via the Theme Editor.
-  Set the Form ID (ULID) from the Prompt Form app and the block
-  will fetch and render the form on the storefront.
+  The app URL is automatically provided by Shopify — no manual URL needed.
 {% endcomment %}
 
 {% if block.settings.form_id != blank %}
@@ -10,7 +9,7 @@
     id="prompt-form-{{ block.id }}"
     data-prompt-form
     data-form-ulid="{{ block.settings.form_id }}"
-    data-api-url="{{ block.settings.api_url | default: '' }}"
+    data-api-url="https://c6ae-182-177-34-129.ngrok-free.app/api/public"
     style="max-width: {{ block.settings.max_width }}px; margin: 0 auto;"
     {{ block.shopify_attributes }}
   ></div>
@@ -47,14 +46,7 @@
       "type": "text",
       "id": "form_id",
       "label": "Form ID",
-      "info": "Copy the Form ID (ULID) shown in the Prompt Form app under Form details."
-    },
-    {
-      "type": "text",
-      "id": "api_url",
-      "label": "App API URL",
-      "default": "https://your-app-url.com/api/public",
-      "info": "The public API URL of your Prompt Form app. Update this when you go live."
+      "info": "Copy the Form ID from the Prompt Form app and paste it here."
     },
     {
       "type": "range",

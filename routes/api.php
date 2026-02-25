@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Shopify\FormController;
 use App\Http\Controllers\Api\Shopify\AiGenerationController;
+use App\Http\Controllers\Api\Shopify\BillingController;
+use App\Http\Controllers\Api\Shopify\StatsController;
 use App\Http\Controllers\Api\Public\PublicFormController;
 
 /*
@@ -13,11 +15,22 @@ use App\Http\Controllers\Api\Public\PublicFormController;
 Route::middleware(['verify.shopify'])->prefix('shopify')->group(function () {
     // Forms
     Route::apiResource('forms', FormController::class);
+    Route::get('forms/{form}/responses', [FormController::class, 'responses']);
     Route::post('forms/{form}/publish', [FormController::class, 'publish']);
+    Route::post('forms/{form}/unpublish', [FormController::class, 'unpublish']);
+    Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate']);
+
+    // Stats
+    Route::get('stats', [StatsController::class, 'index']);
 
     // AI generation
     Route::post('ai/generate', [AiGenerationController::class, 'generate']);
     Route::post('ai/refine', [AiGenerationController::class, 'refine']);
+
+    // Billing
+    Route::get('billing/current', [BillingController::class, 'current']);
+    Route::post('billing/subscribe', [BillingController::class, 'subscribe']);
+    Route::post('billing/cancel', [BillingController::class, 'cancel']);
 });
 
 /*

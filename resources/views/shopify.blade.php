@@ -11,6 +11,10 @@
     @vite(['resources/js/shopify/main.jsx'])
 </head>
 <body>
+    <ui-nav-menu>
+        <a href="/" rel="home">Forms</a>
+        <a href="/pricing">Pricing</a>
+    </ui-nav-menu>
     <div id="shopify-app-root"></div>
 </body>
 </html>

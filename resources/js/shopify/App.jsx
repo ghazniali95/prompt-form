@@ -1,44 +1,39 @@
 import React, { useState } from 'react';
-import { Frame, Navigation } from '@shopify/polaris';
-import { HomeIcon, NoteIcon } from '@shopify/polaris-icons';
+import { Frame } from '@shopify/polaris';
 import FormsIndex from './pages/FormsIndex';
 import FormBuilder from './pages/FormBuilder';
+import PricingPage from './pages/PricingPage';
+
+function getInitialTab() {
+    return window.location.pathname === '/pricing' ? 'pricing' : 'forms';
+}
 
 export default function App() {
     const [currentPage, setCurrentPage] = useState('forms');
     const [editingFormId, setEditingFormId] = useState(null);
+    const [navTab] = useState(getInitialTab);
 
     const navigate = (page, formId = null) => {
         setCurrentPage(page);
         setEditingFormId(formId);
     };
 
-    const renderPage = () => {
-        switch (currentPage) {
-            case 'builder':
-                return <FormBuilder formId={editingFormId} onBack={() => navigate('forms')} />;
-            default:
-                return <FormsIndex onCreateNew={() => navigate('builder')} onEdit={(id) => navigate('builder', id)} />;
-        }
+    const navigateToPricing = () => {
+        window.location.href = '/pricing';
     };
 
-    const nav = (
-        <Navigation location="/">
-            <Navigation.Section
-                items={[
-                    {
-                        label: 'Forms',
-                        icon: NoteIcon,
-                        onClick: () => navigate('forms'),
-                        selected: currentPage === 'forms',
-                    },
-                ]}
-            />
-        </Navigation>
-    );
+    const renderPage = () => {
+        if (currentPage === 'builder') {
+            return <FormBuilder formId={editingFormId} onBack={() => navigate('forms')} onNavigatePricing={navigateToPricing} />;
+        }
+        if (navTab === 'pricing') {
+            return <PricingPage />;
+        }
+        return <FormsIndex onCreateNew={() => navigate('builder')} onEdit={(id) => navigate('builder', id)} onNavigatePricing={navigateToPricing} />;
+    };
 
     return (
-        <Frame navigation={nav}>
+        <Frame>
             {renderPage()}
         </Frame>
     );

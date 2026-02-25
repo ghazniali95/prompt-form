@@ -17,6 +17,9 @@ class User extends Authenticatable implements IShopModel
         'name',
         'email',
         'password',
+        'plan',
+        'shopify_charge_id',
+        'subscription_status',
     ];
 
     protected $hidden = [
@@ -28,7 +31,7 @@ class User extends Authenticatable implements IShopModel
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
 
@@ -40,5 +43,10 @@ class User extends Authenticatable implements IShopModel
     public function aiGenerations()
     {
         return $this->hasMany(AiGeneration::class, 'shop_id');
+    }
+
+    public function formResponses()
+    {
+        return $this->hasMany(FormResponse::class, 'shop_id');
     }
 }

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 
 // ─── Shared primitive components ────────────────────────────────────────────
 
-function Label({ label, required }) {
+function Label({ label, required, labelColor }) {
     return (
-        <label style={{ display: 'block', marginBottom: 4, fontSize: 14, fontWeight: 500, color: '#374151' }}>
+        <label style={{ display: 'block', marginBottom: 4, fontSize: 14, fontWeight: 500, color: labelColor || '#374151' }}>
             {label}
             {required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
         </label>
@@ -16,16 +16,16 @@ function ErrorText({ error }) {
     return <p style={{ margin: '4px 0 0', fontSize: 12, color: '#ef4444' }}>{error}</p>;
 }
 
-function inputStyle(borderRadius, hasError) {
+function inputStyle(borderRadius, hasError, inputBorderColor, fontSize) {
     return {
         display: 'block',
         width: '100%',
         padding: '8px 12px',
-        fontSize: 14,
+        fontSize: fontSize || 14,
         lineHeight: '1.5',
         color: '#333',
         backgroundColor: '#fff',
-        border: `1px solid ${hasError ? '#ef4444' : '#d1d5db'}`,
+        border: `1px solid ${hasError ? '#ef4444' : (inputBorderColor || '#d1d5db')}`,
         borderRadius,
         boxSizing: 'border-box',
         outline: 'none',
@@ -35,8 +35,8 @@ function inputStyle(borderRadius, hasError) {
 
 // ─── Field renderer ──────────────────────────────────────────────────────────
 
-function WidgetField({ field, value, onChange, error, borderRadius }) {
-    const style = inputStyle(borderRadius, !!error);
+function WidgetField({ field, value, onChange, error, borderRadius, labelColor, inputBorderColor, fontSize }) {
+    const style = inputStyle(borderRadius, !!error, inputBorderColor, fontSize);
     const set = (val) => onChange(field.id, val);
 
     switch (field.type) {
@@ -46,7 +46,7 @@ function WidgetField({ field, value, onChange, error, borderRadius }) {
         case 'number':
             return (
                 <div>
-                    <Label label={field.label} required={field.required} />
+                    <Label label={field.label} required={field.required} labelColor={labelColor} />
                     <input
                         type={field.type}
                         value={value || ''}
@@ -61,7 +61,7 @@ function WidgetField({ field, value, onChange, error, borderRadius }) {
         case 'textarea':
             return (
                 <div>
-                    <Label label={field.label} required={field.required} />
+                    <Label label={field.label} required={field.required} labelColor={labelColor} />
                     <textarea
                         value={value || ''}
                         onChange={(e) => set(e.target.value)}
@@ -76,7 +76,7 @@ function WidgetField({ field, value, onChange, error, borderRadius }) {
         case 'select':
             return (
                 <div>
-                    <Label label={field.label} required={field.required} />
+                    <Label label={field.label} required={field.required} labelColor={labelColor} />
                     <select value={value || ''} onChange={(e) => set(e.target.value)} style={style}>
                         <option value="">Select {field.label}</option>
                         {(field.options || []).map((opt) => (
@@ -90,7 +90,7 @@ function WidgetField({ field, value, onChange, error, borderRadius }) {
         case 'radio':
             return (
                 <div>
-                    <Label label={field.label} required={field.required} />
+                    <Label label={field.label} required={field.required} labelColor={labelColor} />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
                         {(field.options || []).map((opt) => (
                             <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
@@ -113,7 +113,7 @@ function WidgetField({ field, value, onChange, error, borderRadius }) {
         case 'checkbox':
             return (
                 <div>
-                    <Label label={field.label} required={field.required} />
+                    <Label label={field.label} required={field.required} labelColor={labelColor} />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
                         {(field.options || []).map((opt) => {
                             const checked = (value || []).includes(opt);
@@ -142,7 +142,7 @@ function WidgetField({ field, value, onChange, error, borderRadius }) {
         case 'date':
             return (
                 <div>
-                    <Label label={field.label} required={field.required} />
+                    <Label label={field.label} required={field.required} labelColor={labelColor} />
                     <input
                         type="date"
                         value={value || ''}
@@ -189,8 +189,13 @@ function WidgetForm({ form, apiUrl, ulid }) {
     const isMultiStep = totalSteps > 1;
 
     const primaryColor = styles?.primaryColor || '#5C6AC4';
+    const backgroundColor = styles?.backgroundColor || '#ffffff';
+    const labelColor = styles?.labelColor || '#374151';
+    const inputBorderColor = styles?.inputBorderColor || '#d1d5db';
+    const buttonTextColor = styles?.buttonTextColor || '#ffffff';
     const borderRadius = styles?.borderRadius || '8px';
     const fontFamily = styles?.fontFamily || 'sans-serif';
+    const fontSize = styles?.fontSize || '14px';
     const submitText = settings?.submitButtonText || 'Submit';
     const successMessage = settings?.successMessage || 'Thank you for your submission!';
     const redirectUrl = settings?.redirectUrl || null;
@@ -249,18 +254,18 @@ function WidgetForm({ form, apiUrl, ulid }) {
         }
     };
 
-    const btnBase = { borderRadius, padding: '10px 24px', fontSize: 14, fontWeight: 500, cursor: 'pointer', lineHeight: '1.5', border: 'none' };
+    const btnBase = { borderRadius, padding: '10px 24px', fontSize, fontWeight: 500, cursor: 'pointer', lineHeight: '1.5', border: 'none' };
 
     if (submitted) {
         return (
-            <div style={{ fontFamily, padding: '14px 18px', backgroundColor: '#d1fae5', borderRadius, color: '#065f46', fontSize: 14 }}>
+            <div style={{ fontFamily, padding: '14px 18px', backgroundColor: '#d1fae5', borderRadius, color: '#065f46', fontSize }}>
                 {successMessage}
             </div>
         );
     }
 
     return (
-        <div style={{ fontFamily, fontSize: 14, color: '#333' }}>
+        <div style={{ fontFamily, fontSize, color: '#333', backgroundColor, padding: '20px', borderRadius }}>
             {/* Multi-step progress */}
             {isMultiStep && (
                 <div style={{ marginBottom: 20 }}>
@@ -289,6 +294,9 @@ function WidgetForm({ form, apiUrl, ulid }) {
                         onChange={handleChange}
                         error={errors[field.id]}
                         borderRadius={borderRadius}
+                        labelColor={labelColor}
+                        inputBorderColor={inputBorderColor}
+                        fontSize={fontSize}
                     />
                 ))}
             </div>
@@ -308,14 +316,14 @@ function WidgetForm({ form, apiUrl, ulid }) {
                     </button>
                 )}
                 {isMultiStep && currentStep < totalSteps - 1 ? (
-                    <button onClick={handleNext} style={{ ...btnBase, backgroundColor: primaryColor, color: '#fff' }}>
+                    <button onClick={handleNext} style={{ ...btnBase, backgroundColor: primaryColor, color: buttonTextColor }}>
                         Next
                     </button>
                 ) : (
                     <button
                         onClick={handleSubmit}
                         disabled={submitting}
-                        style={{ ...btnBase, backgroundColor: primaryColor, color: '#fff', opacity: submitting ? 0.7 : 1 }}
+                        style={{ ...btnBase, backgroundColor: primaryColor, color: buttonTextColor, opacity: submitting ? 0.7 : 1 }}
                     >
                         {submitting ? 'Submitting…' : submitText}
                     </button>
@@ -337,11 +345,18 @@ export default function FormWidget({ ulid, apiUrl }) {
             headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': 'true' },
         })
             .then((res) => {
-                if (!res.ok) throw new Error('Not found');
+                if (res.status === 404) throw new Error('not_found');
+                if (!res.ok) throw new Error('server_error');
                 return res.json();
             })
             .then((json) => setForm(json.data))
-            .catch(() => setError('This form is not available.'))
+            .catch((err) => {
+                if (err.message === 'not_found') {
+                    setError('This form is not available or has not been published yet.');
+                } else {
+                    setError('Unable to load form. Please check your connection and try again.');
+                }
+            })
             .finally(() => setLoading(false));
     }, [ulid, apiUrl]);
 

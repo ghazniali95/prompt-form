@@ -15,7 +15,7 @@ class PublicApiCors
             return response('', 200)
                 ->header('Access-Control-Allow-Origin', '*')
                 ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+                ->header('Access-Control-Allow-Headers', '*');
         }
 
         $response = $next($request);
@@ -23,6 +23,6 @@ class PublicApiCors
         return $response
             ->header('Access-Control-Allow-Origin', '*')
             ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+            ->header('Access-Control-Allow-Headers', '*');
     }
 }
