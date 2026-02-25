@@ -1,4 +1,4 @@
-name = "Prompt Form"
+name = "PromptForm"
 client_id = "352e9deba81fac32cb0727b95d682158"
 application_url = "https://promptform.mesh99.com"
 embedded = true
@@ -19,17 +19,10 @@ redirect_urls = [
 api_version = "2025-01"
 
   [[webhooks.subscriptions]]
-  topics = ["customers/data_request"]
-  uri = "/api/webhooks/gdpr/customers-data-request"
-
-  [[webhooks.subscriptions]]
-  topics = ["customers/redact"]
-  uri = "/api/webhooks/gdpr/customers-redact"
-
-  [[webhooks.subscriptions]]
-  topics = ["shop/redact"]
-  uri = "/api/webhooks/gdpr/shop-redact"
-
-  [[webhooks.subscriptions]]
   topics = ["app/uninstalled"]
   uri = "/api/webhooks/app/uninstalled"
+
+  [webhooks.privacy_compliance]
+  customer_data_request_url = "https://promptform.mesh99.com/api/webhooks/gdpr/customers-data-request"
+  customer_deletion_url = "https://promptform.mesh99.com/api/webhooks/gdpr/customers-redact"
+  shop_deletion_url = "https://promptform.mesh99.com/api/webhooks/gdpr/shop-redact"

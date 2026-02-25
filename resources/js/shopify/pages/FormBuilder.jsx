@@ -410,7 +410,7 @@ export default function FormBuilder({ formId, onBack, onNavigatePricing }) {
                                         <List.Item>Open your <strong>Theme Editor</strong> using the button below</List.Item>
                                         <List.Item>Navigate to the page where you want the form to appear</List.Item>
                                         <List.Item>Click <strong>Add section</strong> or <strong>Add block</strong></List.Item>
-                                        <List.Item>Under <strong>Apps</strong>, select <strong>Prompt Form</strong></List.Item>
+                                        <List.Item>Under <strong>Apps</strong>, select <strong>PromptForm</strong></List.Item>
                                         <List.Item>Paste your <strong>Form ID</strong> into the block settings</List.Item>
                                         <List.Item>Click <strong>Save</strong> in the theme editor</List.Item>
                                     </List>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') — Prompt Form</title>
+    <title>@yield('title') — PromptForm</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a1a; background: #fff; line-height: 1.7; }
@@ -24,7 +24,7 @@
 </head>
 <body>
     <header>
-        <a href="https://promptform.mesh99.com">Prompt Form</a>
+        <a href="https://promptform.mesh99.com">PromptForm</a>
         <span>/ @yield('title')</span>
     </header>
 
@@ -35,7 +35,7 @@
     <footer>
         <a href="/privacy-policy">Privacy Policy</a> &nbsp;·&nbsp;
         <a href="/terms">Terms of Service</a> &nbsp;·&nbsp;
-        &copy; {{ date('Y') }} Prompt Form
+        &copy; {{ date('Y') }} PromptForm
     </footer>
 </body>
 </html>

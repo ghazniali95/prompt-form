@@ -7,7 +7,7 @@
 <p class="meta">Last updated: {{ date('F j, Y') }}</p>
 
 <p>
-    Prompt Form ("we", "us", or "our") is a Shopify application that allows merchants to create
+    PromptForm ("we", "us", or "our") is a Shopify application that allows merchants to create
     AI-powered forms and collect responses from their store visitors. This Privacy Policy explains
     what data we collect, how we use it, and your rights regarding that data.
 </p>
@@ -24,7 +24,7 @@
 
 <h2>2. How We Use Your Data</h2>
 <ul>
-    <li>To provide and operate the Prompt Form service.</li>
+    <li>To provide and operate the PromptForm service.</li>
     <li>To generate form schemas via OpenAI's API using prompts you provide.</li>
     <li>To enforce plan limits (number of forms, submissions, and AI tokens).</li>
     <li>To process billing via Shopify's Billing API.</li>
@@ -42,7 +42,7 @@
 <h2>4. Data Retention</h2>
 <ul>
     <li>Form responses are retained as long as the merchant's account is active and until explicitly deleted by the merchant.</li>
-    <li>When a merchant uninstalls Prompt Form, OAuth tokens are immediately revoked and billing is cancelled.</li>
+    <li>When a merchant uninstalls PromptForm, OAuth tokens are immediately revoked and billing is cancelled.</li>
     <li>All remaining shop data (forms, responses, AI logs) is permanently deleted within 48 hours of uninstall, upon receipt of Shopify's <code>shop/redact</code> webhook.</li>
 </ul>
 
@@ -55,7 +55,7 @@
     <li>The right to data portability.</li>
 </ul>
 <p>
-    Merchants can manage and delete form responses directly within the Prompt Form admin dashboard.
+    Merchants can manage and delete form responses directly within the PromptForm admin dashboard.
     To exercise any data rights, contact us at <a href="mailto:privacy@mesh99.com">privacy@mesh99.com</a>.
 </p>
 
@@ -68,7 +68,7 @@
 
 <h2>7. Cookies</h2>
 <p>
-    The Prompt Form admin interface is a Shopify embedded app and does not set any first-party
+    The PromptForm admin interface is a Shopify embedded app and does not set any first-party
     cookies beyond those required by Shopify's session management. The storefront widget does not
     set any cookies.
 </p>
