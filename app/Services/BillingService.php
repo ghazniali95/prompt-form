@@ -28,6 +28,10 @@ class BillingService
             'shop' => $user->name,
         ]);
 
+        if (! $user->shopify_token) {
+            throw new \RuntimeException('Shopify billing error: shop has no access token (re-install required)');
+        }
+
         $response = $user->api()->rest(
             'POST',
             '/admin/api/2025-01/recurring_application_charges.json',
@@ -42,10 +46,19 @@ class BillingService
         );
 
         if ($response['errors']) {
-            throw new \RuntimeException('Shopify billing error: ' . json_encode($response['body']));
+            \Log::error('Shopify billing API error', [
+                'shop'   => $user->name,
+                'plan'   => $plan,
+                'status' => $response['status'] ?? null,
+                'body'   => json_encode($response['body']),
+            ]);
+            throw new \RuntimeException(
+                'Shopify billing error: [' . ($response['status'] ?? '?') . '] ' . json_encode($response['body'])
+            );
         }
 
-        $charge = $response['body']->recurring_application_charge;
+        $charge = $response['body']?->recurring_application_charge
+            ?? throw new \RuntimeException('Shopify billing error: empty response body (status ' . ($response['status'] ?? '?') . ')');
 
         // Mark pending so we don't lose the charge_id if the user navigates away
         $user->update([
