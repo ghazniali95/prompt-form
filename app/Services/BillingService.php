@@ -17,43 +17,68 @@ class BillingService
     ];
 
     /**
-     * Create a recurring application charge on Shopify and return the confirmation URL.
+     * Create a recurring subscription via GraphQL and return the confirmation URL.
      */
     public function createSubscription(User $user, string $plan): string
     {
-        // Include shop in the return_url — Shopify only appends charge_id,
-        // not shop, so we must embed it ourselves.
+        if (! $user->shopify_token) {
+            throw new \RuntimeException('Shopify billing error: shop has no access token (re-install required)');
+        }
+
         $returnUrl = url('/billing/callback') . '?' . http_build_query([
             'plan' => $plan,
             'shop' => $user->name,
         ]);
 
-        if (! $user->shopify_token) {
-            throw new \RuntimeException('Shopify billing error: shop has no access token (re-install required)');
+        $mutation = <<<'GQL'
+        mutation AppSubscriptionCreate(
+            $name: String!,
+            $returnUrl: URL!,
+            $test: Boolean,
+            $lineItems: [AppSubscriptionLineItemInput!]!
+        ) {
+            appSubscriptionCreate(
+                name: $name
+                returnUrl: $returnUrl
+                test: $test
+                lineItems: $lineItems
+            ) {
+                appSubscription {
+                    id
+                    status
+                }
+                confirmationUrl
+                userErrors {
+                    field
+                    message
+                }
+            }
         }
+        GQL;
 
-        \Log::info('Shopify billing: creating charge', [
-            'shop'         => $user->name,
-            'plan'         => $plan,
-            'billing_test' => config('shopify-app.billing_test'),
-            'return_url'   => $returnUrl,
-        ]);
-
-        $response = $user->api()->rest(
-            'POST',
-            '/admin/api/2025-01/recurring_application_charges.json',
-            [
-                'recurring_application_charge' => [
-                    'name'       => self::PLAN_NAMES[$plan],
-                    'price'      => self::PLAN_PRICES[$plan],
-                    'return_url' => $returnUrl,
-                    'test'       => config('shopify-app.billing_test'),
+        $variables = [
+            'name'      => self::PLAN_NAMES[$plan],
+            'returnUrl' => $returnUrl,
+            'test'      => config('shopify-app.billing_test'),
+            'lineItems' => [
+                [
+                    'plan' => [
+                        'appRecurringPricingDetails' => [
+                            'price'    => [
+                                'amount'       => self::PLAN_PRICES[$plan],
+                                'currencyCode' => 'USD',
+                            ],
+                            'interval' => 'EVERY_30_DAYS',
+                        ],
+                    ],
                 ],
-            ]
-        );
+            ],
+        ];
+
+        $response = $user->api()->graph($mutation, $variables);
 
         if ($response['errors']) {
-            \Log::error('Shopify billing API error', [
+            \Log::error('Shopify billing GraphQL error', [
                 'shop'   => $user->name,
                 'plan'   => $plan,
                 'status' => $response['status'] ?? null,
@@ -64,63 +89,96 @@ class BillingService
             );
         }
 
-        $charge = $response['body']?->recurring_application_charge
-            ?? throw new \RuntimeException('Shopify billing error: empty response body (status ' . ($response['status'] ?? '?') . ')');
+        $result = $response['body']->data->appSubscriptionCreate ?? null;
 
-        // Mark pending so we don't lose the charge_id if the user navigates away
+        if (! empty($result->userErrors)) {
+            $errors = collect($result->userErrors)->pluck('message')->implode(', ');
+            \Log::error('Shopify billing userErrors', ['shop' => $user->name, 'errors' => $errors]);
+            throw new \RuntimeException('Shopify billing error: ' . $errors);
+        }
+
+        $subscription    = $result->appSubscription ?? null;
+        $confirmationUrl = $result->confirmationUrl ?? null;
+
+        if (! $subscription || ! $confirmationUrl) {
+            throw new \RuntimeException('Shopify billing error: empty response from appSubscriptionCreate');
+        }
+
+        // Store GID (e.g. gid://shopify/AppSubscription/12345) and mark pending
         $user->update([
-            'shopify_charge_id'   => $charge->id,
+            'shopify_charge_id'   => $subscription->id,
             'subscription_status' => 'pending',
         ]);
 
-        return $charge->confirmation_url;
+        return $confirmationUrl;
     }
 
     /**
-     * Activate a charge after merchant approval and update the user's plan.
+     * Verify a subscription is active after merchant approval and update the user's plan.
+     * With GraphQL, Shopify activates the subscription automatically — we just verify status.
      */
     public function activateSubscription(User $user, string $chargeId, string $plan): void
     {
-        $response = $user->api()->rest(
-            'POST',
-            "/admin/api/2025-01/recurring_application_charges/{$chargeId}/activate.json",
-            []
-        );
+        // Shopify passes a numeric charge_id in the callback URL; build the GID.
+        $gid = str_starts_with($chargeId, 'gid://')
+            ? $chargeId
+            : "gid://shopify/AppSubscription/{$chargeId}";
+
+        $query = <<<'GQL'
+        query GetAppSubscription($id: ID!) {
+            node(id: $id) {
+                ... on AppSubscription {
+                    id
+                    status
+                }
+            }
+        }
+        GQL;
+
+        $response = $user->api()->graph($query, ['id' => $gid]);
 
         if ($response['errors']) {
-            // Dev stores with auto_activate=T auto-activate the charge before we can
-            // call activate. Verify the charge is actually active via a GET before failing.
-            $check = $user->api()->rest(
-                'GET',
-                "/admin/api/2025-01/recurring_application_charges/{$chargeId}.json"
-            );
+            throw new \RuntimeException('Failed to verify subscription: ' . json_encode($response['body']));
+        }
 
-            $status = $check['body']?->recurring_application_charge?->status ?? '';
+        $subscription = $response['body']->data->node ?? null;
+        $status       = strtoupper($subscription->status ?? '');
 
-            if (! in_array($status, ['active', 'accepted'])) {
-                throw new \RuntimeException('Failed to activate charge: ' . json_encode($response['body']));
-            }
+        if (! in_array($status, ['ACTIVE', 'ACCEPTED'])) {
+            throw new \RuntimeException("Subscription not active (status: {$status})");
         }
 
         $user->update([
             'plan'                => $plan,
-            'shopify_charge_id'   => $chargeId,
+            'shopify_charge_id'   => $gid,
             'subscription_status' => 'active',
         ]);
     }
 
     /**
-     * Cancel the active subscription on Shopify and downgrade user to free.
+     * Cancel the active subscription via GraphQL and downgrade user to free.
      */
     public function cancelSubscription(User $user): void
     {
         $chargeId = $user->shopify_charge_id;
 
         if ($chargeId) {
-            $user->api()->rest(
-                'DELETE',
-                "/admin/api/2025-01/recurring_application_charges/{$chargeId}.json"
-            );
+            $mutation = <<<'GQL'
+            mutation AppSubscriptionCancel($id: ID!) {
+                appSubscriptionCancel(id: $id) {
+                    appSubscription {
+                        id
+                        status
+                    }
+                    userErrors {
+                        field
+                        message
+                    }
+                }
+            }
+            GQL;
+
+            $user->api()->graph($mutation, ['id' => $chargeId]);
         }
 
         $user->update([

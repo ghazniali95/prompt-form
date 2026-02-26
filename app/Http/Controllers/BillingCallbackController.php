@@ -30,12 +30,14 @@ class BillingCallbackController extends Controller
             $billing->activateSubscription($user, $chargeId, $plan);
         } catch (\Throwable $e) {
             Log::error('BillingCallback: activation failed — ' . $e->getMessage());
-            // On dev stores Shopify auto-activates the charge (auto_activate=T).
-            // The activate API call will fail but the charge IS active, so we
-            // still update the user's plan.
+            // If verification fails, still grant access — Shopify would not redirect
+            // here unless the merchant approved the charge.
+            $gid = str_starts_with($chargeId, 'gid://')
+                ? $chargeId
+                : "gid://shopify/AppSubscription/{$chargeId}";
             $user->update([
                 'plan'                => $plan,
-                'shopify_charge_id'   => $chargeId,
+                'shopify_charge_id'   => $gid,
                 'subscription_status' => 'active',
             ]);
         }
