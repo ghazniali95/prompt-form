@@ -322,6 +322,8 @@ return [
 
     'billing_redirect' => env('SHOPIFY_BILLING_REDIRECT', '/billing/process'),
 
+    'billing_test' => (bool) env('SHOPIFY_BILLING_TEST', false),
+
 
     /*
     |--------------------------------------------------------------------------
