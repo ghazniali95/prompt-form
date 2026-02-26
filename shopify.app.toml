@@ -1,5 +1,7 @@
-name = "PromptForm"
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
 client_id = "352e9deba81fac32cb0727b95d682158"
+name = "PromptForm"
 application_url = "https://promptform.mesh99.com"
 embedded = true
 
@@ -7,22 +9,28 @@ embedded = true
 automatically_update_urls_on_dev = true
 dev_store_url = "bigdatashopgpttest.myshopify.com"
 
-[access_scopes]
-scopes = "read_products,write_products,read_orders"
-
-[auth]
-redirect_urls = [
-    "https://promptform.mesh99.com/authenticate",
-]
-
 [webhooks]
 api_version = "2025-01"
 
   [[webhooks.subscriptions]]
-  topics = ["app/uninstalled"]
+  uri = "/api/webhooks/gdpr/customers-data-request"
+  compliance_topics = [ "customers/data_request" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/api/webhooks/gdpr/customers-redact"
+  compliance_topics = [ "customers/redact" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/api/webhooks/gdpr/shop-redact"
+  compliance_topics = [ "shop/redact" ]
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
   uri = "/api/webhooks/app/uninstalled"
 
-  [webhooks.privacy_compliance]
-  customer_data_request_url = "https://promptform.mesh99.com/api/webhooks/gdpr/customers-data-request"
-  customer_deletion_url = "https://promptform.mesh99.com/api/webhooks/gdpr/customers-redact"
-  shop_deletion_url = "https://promptform.mesh99.com/api/webhooks/gdpr/shop-redact"
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = ""
+
+[auth]
+redirect_urls = [ "https://promptform.mesh99.com/authenticate" ]

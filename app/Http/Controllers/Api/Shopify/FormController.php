@@ -126,9 +126,22 @@ class FormController extends Controller
 
     public function duplicate(string $id): JsonResponse
     {
-        $original = Auth::user()->forms()->findOrFail($id);
+        $user  = Auth::user();
+        $plan  = $user->plan ?? 'free';
+        $limit = PlanLimits::get($plan, 'forms');
 
-        $copy = Auth::user()->forms()->create([
+        if ($user->forms()->count() >= $limit) {
+            $planLabel = PlanLimits::PLANS[$plan]['label'] ?? 'current';
+            return response()->json([
+                'error'            => 'limit_reached',
+                'message'          => "You've reached the {$limit}-form limit on your {$planLabel} plan.",
+                'upgrade_required' => true,
+            ], 422);
+        }
+
+        $original = $user->forms()->findOrFail($id);
+
+        $copy = $user->forms()->create([
             'title'    => 'Copy of ' . $original->title,
             'schema'   => $original->schema,
             'styles'   => $original->styles,
