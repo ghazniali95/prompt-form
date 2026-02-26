@@ -89,19 +89,15 @@ class BillingService
             );
         }
 
-        $result = $response['body']->data->appSubscriptionCreate ?? null;
-
-        if (! empty($result->userErrors)) {
-            $errors = collect($result->userErrors)->pluck('message')->implode(', ');
-            \Log::error('Shopify billing userErrors', ['shop' => $user->name, 'errors' => $errors]);
-            throw new \RuntimeException('Shopify billing error: ' . $errors);
-        }
-
+        $result          = $response['body']->data->appSubscriptionCreate ?? null;
         $subscription    = $result->appSubscription ?? null;
         $confirmationUrl = $result->confirmationUrl ?? null;
 
         if (! $subscription || ! $confirmationUrl) {
-            throw new \RuntimeException('Shopify billing error: empty response from appSubscriptionCreate');
+            $userErrors = is_array($result->userErrors ?? null) ? $result->userErrors : [];
+            $errors     = collect($userErrors)->pluck('message')->filter()->implode(', ');
+            \Log::error('Shopify billing userErrors', ['shop' => $user->name, 'errors' => $errors, 'result' => json_encode($result)]);
+            throw new \RuntimeException('Shopify billing error: ' . ($errors ?: 'no confirmation URL returned'));
         }
 
         // Store GID (e.g. gid://shopify/AppSubscription/12345) and mark pending
