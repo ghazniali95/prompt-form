@@ -32,6 +32,13 @@ class BillingService
             throw new \RuntimeException('Shopify billing error: shop has no access token (re-install required)');
         }
 
+        \Log::info('Shopify billing: creating charge', [
+            'shop'         => $user->name,
+            'plan'         => $plan,
+            'billing_test' => config('shopify-app.billing_test'),
+            'return_url'   => $returnUrl,
+        ]);
+
         $response = $user->api()->rest(
             'POST',
             '/admin/api/2025-01/recurring_application_charges.json',
