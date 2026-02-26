@@ -40,7 +40,7 @@ class BillingService
                     'name'       => self::PLAN_NAMES[$plan],
                     'price'      => self::PLAN_PRICES[$plan],
                     'return_url' => $returnUrl,
-                    'test'       => config('app.env') !== 'production',
+                    'test'       => (bool) env('SHOPIFY_BILLING_TEST', false),
                 ],
             ]
         );
