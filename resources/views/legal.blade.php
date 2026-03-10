@@ -14,6 +14,7 @@
         h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
         .meta { color: #6b7280; font-size: 14px; margin-bottom: 40px; }
         h2 { font-size: 18px; font-weight: 600; margin: 36px 0 12px; }
+        h3 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: #374151; }
         p { margin-bottom: 14px; color: #374151; }
         ul { margin: 0 0 14px 20px; color: #374151; }
         ul li { margin-bottom: 6px; }

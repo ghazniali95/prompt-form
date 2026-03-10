@@ -4,85 +4,97 @@
 
 @section('content')
 <h1>Privacy Policy</h1>
-<p class="meta">Last updated: {{ date('F j, Y') }}</p>
+<p class="meta">Last updated: March 10, 2026</p>
 
+<h2>1. Overview</h2>
 <p>
-    PromptForm ("we", "us", or "our") is a Shopify application that allows merchants to create
-    AI-powered forms and collect responses from their store visitors. This Privacy Policy explains
-    what data we collect, how we use it, and your rights regarding that data.
+    Prompt Form ("the App", "we", "us") is a Shopify application that allows merchants to create AI-powered forms and embed them on their Shopify storefront. This Privacy Policy explains what data we collect, how we use it, and how we protect it, in compliance with Shopify's Partner Program Agreement and applicable privacy laws.
 </p>
 
-<h2>1. Data We Collect</h2>
-<p>We collect and process the following categories of data:</p>
+<h2>2. Data We Collect</h2>
+
+<h3>2.1 Merchant Data (collected during installation and use)</h3>
 <ul>
-    <li><strong>Merchant account data</strong> — Shopify store domain, OAuth access token (encrypted at rest), billing plan and subscription status.</li>
-    <li><strong>Form definitions</strong> — Form titles, field schemas, styles, and settings created by merchants.</li>
-    <li><strong>Form responses</strong> — Data submitted by end-customers through forms embedded on merchant storefronts. This may include names, email addresses, phone numbers, or other fields merchants configure.</li>
-    <li><strong>Usage metadata</strong> — Hashed (non-reversible) IP addresses and browser user agents attached to form submissions for spam prevention. We do not store raw IP addresses.</li>
-    <li><strong>AI generation logs</strong> — Records of AI-generated form schemas (prompt text, token counts) to enforce plan usage limits.</li>
+    <li>Shop domain (e.g. mystore.myshopify.com)</li>
+    <li>Shopify OAuth access token — stored encrypted, used solely to make authorized API calls on the merchant's behalf</li>
+    <li>Billing information — managed exclusively through the Shopify Billing API; we do not store payment card details</li>
+    <li>App usage data — form configurations, AI generation prompts, tokens used, and version history</li>
 </ul>
 
-<h2>2. How We Use Your Data</h2>
+<h3>2.2 Storefront Visitor Data (collected when end customers submit forms)</h3>
 <ul>
-    <li>To provide and operate the PromptForm service.</li>
-    <li>To generate form schemas via OpenAI's API using prompts you provide.</li>
-    <li>To enforce plan limits (number of forms, submissions, and AI tokens).</li>
-    <li>To process billing via Shopify's Billing API.</li>
-    <li>To respond to GDPR data requests from Shopify on behalf of merchants.</li>
+    <li>Form submission data — field values submitted by the merchant's customers (content varies by form)</li>
+    <li>Metadata — hashed IP address, user agent string, and referrer URL, collected for spam prevention and analytics</li>
 </ul>
 
-<h2>3. Third-Party Services</h2>
-<p>We share data with the following third parties to operate the service:</p>
-<ul>
-    <li><strong>Shopify</strong> — OAuth authentication, billing, and the Shopify Admin API. <a href="https://www.shopify.com/legal/privacy" target="_blank">Shopify Privacy Policy</a>.</li>
-    <li><strong>OpenAI</strong> — Form prompts are sent to OpenAI's API to generate form schemas. We do not send personal data of end-customers to OpenAI. <a href="https://openai.com/policies/privacy-policy" target="_blank">OpenAI Privacy Policy</a>.</li>
-</ul>
-<p>We do not sell personal data to any third party.</p>
-
-<h2>4. Data Retention</h2>
-<ul>
-    <li>Form responses are retained as long as the merchant's account is active and until explicitly deleted by the merchant.</li>
-    <li>When a merchant uninstalls PromptForm, OAuth tokens are immediately revoked and billing is cancelled.</li>
-    <li>All remaining shop data (forms, responses, AI logs) is permanently deleted within 48 hours of uninstall, upon receipt of Shopify's <code>shop/redact</code> webhook.</li>
-</ul>
-
-<h2>5. GDPR and Your Rights</h2>
-<p>If you are located in the European Economic Area (EEA), you have rights including:</p>
-<ul>
-    <li>The right to access personal data we hold about you.</li>
-    <li>The right to request correction or deletion of your personal data.</li>
-    <li>The right to object to or restrict processing.</li>
-    <li>The right to data portability.</li>
-</ul>
+<h3>2.3 AI Processing Data</h3>
 <p>
-    Merchants can manage and delete form responses directly within the PromptForm admin dashboard.
-    To exercise any data rights, contact us at <a href="mailto:privacy@mesh99.com">privacy@mesh99.com</a>.
+    Prompts entered by merchants to generate or refine form schemas are sent to OpenAI's API (GPT-4o) for processing. Prompts and generated schemas are stored in our database for your form history.
 </p>
 
-<h2>6. Security</h2>
+<h2>3. How We Use Data</h2>
+<ul>
+    <li>Shop domain &amp; access token — to authenticate API requests and deliver core app functionality</li>
+    <li>Form configurations — to render forms in the Shopify Admin and on your storefront</li>
+    <li>AI prompts &amp; schemas — to generate and refine form structures via OpenAI</li>
+    <li>Form submission data — to store and display responses to merchants</li>
+    <li>Hashed IP &amp; metadata — for rate limiting, spam detection, and analytics</li>
+    <li>Usage metrics — to enforce plan limits such as AI prompt usage per tier</li>
+</ul>
+<p>We do not sell, rent, or share merchant or customer data with third parties for advertising or marketing purposes.</p>
+
+<h2>4. Third-Party Services</h2>
+<ul>
+    <li><strong>Shopify</strong> — app platform, billing, and OAuth. We share your shop domain and access scopes.</li>
+    <li><strong>OpenAI</strong> — used for AI form generation. Only merchant-entered prompts are shared. All data sent to OpenAI is subject to <a href="https://openai.com/privacy" target="_blank">https://openai.com/privacy</a>. We use structured outputs and do not include personally identifiable customer information in AI prompts.</li>
+    <li><strong>Redis / Laravel Horizon</strong> — used for async queue processing with temporary job payloads only.</li>
+</ul>
+
+<h2>5. Data Storage and Security</h2>
+<ul>
+    <li>All data is stored in encrypted MySQL databases.</li>
+    <li>Shopify OAuth access tokens are encrypted at rest.</li>
+    <li>All data in transit is protected via TLS/SSL (HTTPS enforced on all endpoints).</li>
+    <li>Our storefront API uses ULID-based identifiers (not sequential IDs) to prevent enumeration attacks.</li>
+    <li>Access to production data is restricted to authorized personnel only.</li>
+</ul>
+
+<h2>6. GDPR Compliance</h2>
+<p>Prompt Form implements all mandatory Shopify GDPR webhooks:</p>
+<ul>
+    <li><strong>customers/data_request</strong> — We provide merchants with any stored customer data upon request.</li>
+    <li><strong>customers/redact</strong> — We delete customer submission data associated with a specific customer upon request.</li>
+    <li><strong>shop/redact</strong> — Upon app uninstallation and a 48-hour grace period, we permanently delete all shop data including forms, responses, AI generation history, and access tokens.</li>
+</ul>
+<p>Merchants acting as data controllers are responsible for obtaining appropriate consent from their customers before collecting data through forms embedded on their storefront.</p>
+
+<h2>7. Data Retention</h2>
+<ul>
+    <li>Shop data (forms, settings) — retained while the app is installed; deleted 48 hours after uninstall</li>
+    <li>Form submission responses — retained until the merchant deletes them or uninstalls the app</li>
+    <li>AI generation history — retained while the app is installed</li>
+    <li>Access tokens — deleted immediately upon app uninstall</li>
+</ul>
+
+<h2>8. Merchant Responsibilities</h2>
+<p>Merchants using Prompt Form are responsible for:</p>
+<ul>
+    <li>Informing their customers about what data is collected through forms on their storefront</li>
+    <li>Ensuring their use of the App complies with applicable privacy laws (GDPR, CCPA, etc.)</li>
+    <li>Configuring forms in a manner consistent with their own privacy policy</li>
+</ul>
+
+<h2>9. Children's Privacy</h2>
+<p>The App is intended for use by merchants and is not directed at individuals under the age of 13. We do not knowingly collect personal data from children.</p>
+
+<h2>10. Changes to This Policy</h2>
 <p>
-    We store all data in encrypted databases. Shopify OAuth tokens are stored in a dedicated
-    column separate from any user authentication system. Hashed IPs use a one-way SHA-256 hash
-    that cannot be reversed. Access to production systems is restricted to authorised personnel only.
+    We may update this Privacy Policy from time to time. When we do, we will update the "Last updated" date at the top. Continued use of the App after changes constitutes acceptance of the updated policy.
 </p>
 
-<h2>7. Cookies</h2>
+<h2>11. Contact</h2>
 <p>
-    The PromptForm admin interface is a Shopify embedded app and does not set any first-party
-    cookies beyond those required by Shopify's session management. The storefront widget does not
-    set any cookies.
-</p>
-
-<h2>8. Changes to This Policy</h2>
-<p>
-    We may update this Privacy Policy from time to time. When we do, we will update the
-    "Last updated" date at the top. Continued use of the app after changes constitutes
-    acceptance of the updated policy.
-</p>
-
-<h2>9. Contact</h2>
-<p>
-    For privacy-related enquiries or data requests, contact us at:<br>
-    <a href="mailto:privacy@mesh99.com">privacy@mesh99.com</a>
+    For privacy-related questions or data requests, please contact us at:<br>
+    <a href="mailto:ghazniali95@gmail.com">ghazniali95@gmail.com</a>
 </p>
 @endsection
