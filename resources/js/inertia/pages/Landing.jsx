@@ -58,7 +58,6 @@ export default function Landing() {
 
                 {/* Badge */}
                 <Tag
-                    icon={<ShopOutlined />}
                     color="geekblue"
                     style={{ marginBottom: 28, padding: '4px 14px', fontSize: 13, borderRadius: 999 }}
                 >
