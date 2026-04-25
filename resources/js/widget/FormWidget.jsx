@@ -346,13 +346,16 @@ export default function FormWidget({ ulid, apiUrl }) {
         })
             .then((res) => {
                 if (res.status === 404) throw new Error('not_found');
+                if (res.status === 403) throw new Error('draft');
                 if (!res.ok) throw new Error('server_error');
                 return res.json();
             })
             .then((json) => setForm(json.data))
             .catch((err) => {
-                if (err.message === 'not_found') {
-                    setError('This form is not available or has not been published yet.');
+                if (err.message === 'draft') {
+                    setError('This form is currently in draft. Please publish it from your PromptForm dashboard to make it visible.');
+                } else if (err.message === 'not_found') {
+                    setError('Form not found. Please check that the Form ID is correct.');
                 } else {
                     setError('Unable to load form. Please check your connection and try again.');
                 }

@@ -12,7 +12,11 @@ class PublicFormController extends Controller
 {
     public function show(string $ulid): JsonResponse
     {
-        $form = Form::where('ulid', $ulid)->where('is_published', true)->firstOrFail();
+        $form = Form::where('ulid', $ulid)->firstOrFail();
+
+        if (! $form->is_published) {
+            return response()->json(['error' => 'draft'], 403);
+        }
 
         return response()->json([
             'data' => [
