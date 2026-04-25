@@ -8,8 +8,6 @@
   assign max_w    = block.settings.max_width | default: 600
 %}
 
-{{- '<!-- PromptForm block -->' -}}
-
 <div {{ block.shopify_attributes }}>
   {% if form_id != blank %}
     <div
@@ -26,39 +24,38 @@
       </p>
     </div>
   {% endif %}
-</div>
 
-<script>
-  (function () {
-    var WIDGET_SRC = {{ 'form-widget.js' | asset_url | json }};
+  <script>
+    (function () {
+      var WIDGET_SRC = {{ 'form-widget.js' | asset_url | json }};
 
-    function run() {
-      if (window.PromptFormWidget) {
-        window.PromptFormWidget.init();
-        return;
+      function run() {
+        if (window.PromptFormWidget) {
+          window.PromptFormWidget.init();
+          return;
+        }
+        if (window.__pfLoading) return;
+        window.__pfLoading = true;
+        var s = document.createElement('script');
+        s.src = WIDGET_SRC;
+        s.async = true;
+        s.onload = function () {
+          window.__pfLoading = false;
+          if (window.PromptFormWidget) window.PromptFormWidget.init();
+        };
+        document.head.appendChild(s);
       }
-      if (window.__pfLoading) return;
-      window.__pfLoading = true;
-      var s = document.createElement('script');
-      s.src = WIDGET_SRC;
-      s.async = true;
-      s.onload = function () {
-        window.__pfLoading = false;
-        if (window.PromptFormWidget) window.PromptFormWidget.init();
-      };
-      document.head.appendChild(s);
-    }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', run);
-    } else {
-      run();
-    }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+      } else {
+        run();
+      }
 
-    // Re-initialize when Theme Editor reloads the section (e.g. merchant changes Form ID)
-    document.addEventListener('shopify:section:load', run);
-  })();
-</script>
+      document.addEventListener('shopify:section:load', run);
+    })();
+  </script>
+</div>
 
 {% schema %}
 {
