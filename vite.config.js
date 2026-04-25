@@ -8,6 +8,7 @@ export default defineConfig({
             input: [
                 'resources/js/shopify/main.jsx',
                 'resources/js/inertia/app.jsx',
+                'resources/js/admin/main.jsx',
             ],
             refresh: true,
         }),
@@ -26,6 +27,7 @@ export default defineConfig({
         alias: {
             '@app-shopify': '/resources/js/shopify',
             '@app-inertia': '/resources/js/inertia',
+            '@app-admin':   '/resources/js/admin',
         },
     },
     css: {

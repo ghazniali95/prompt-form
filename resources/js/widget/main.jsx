@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import FormWidget from './FormWidget';
 
 function mountWidget(el) {
-    // Prevent double-mounting if script is included multiple times
     if (el.dataset.pfMounted === 'true') return;
     el.dataset.pfMounted = 'true';
 
@@ -21,6 +20,9 @@ function mountWidget(el) {
 function init() {
     document.querySelectorAll('[data-prompt-form]').forEach(mountWidget);
 }
+
+// Expose globally so the liquid block can call init() after Theme Editor reloads
+window.PromptFormWidget = { init };
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

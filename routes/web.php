@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\BillingCallbackController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,3 +22,8 @@ Route::middleware(['verify.shopify'])->group(function () {
 // this point so verify.shopify would loop trying to re-authenticate.
 // We resolve the user from the `shop` query param Shopify sends.
 Route::get('/billing/callback', BillingCallbackController::class)->name('billing.callback');
+
+// Admin panel — HTTP Basic Auth protected
+Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
+    Route::get('/{any?}', [AdminDashboardController::class, 'index'])->where('any', '.*');
+});

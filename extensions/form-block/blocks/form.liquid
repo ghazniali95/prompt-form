@@ -1,41 +1,64 @@
 {% comment %}
-  PromptForm — Theme App Extension block
-  Merchants drag this block into any section via the Theme Editor.
-  The app URL is automatically provided by Shopify — no manual URL needed.
+  PromptForm — Theme App Extension Block
+  Add this block inside any section: Themes → Customize → Add block → Apps → PromptForm
 {% endcomment %}
 
-{% if block.settings.form_id != blank %}
-  <div
-    id="prompt-form-{{ block.id }}"
-    data-prompt-form
-    data-form-ulid="{{ block.settings.form_id }}"
-    data-api-url="https://promptform.mesh99.com/api/public"
-    style="max-width: {{ block.settings.max_width }}px; margin: 0 auto;"
-    {{ block.shopify_attributes }}
-  ></div>
+{% liquid
+  assign form_id  = block.settings.form_id
+  assign max_w    = block.settings.max_width | default: 600
+%}
 
-  {% comment %}
-    Load the widget script only once per page even if multiple
-    form blocks are present.
-  {% endcomment %}
-  <script>
-    (function() {
-      if (window.__pfWidgetLoaded) return;
-      window.__pfWidgetLoaded = true;
-      var s = document.createElement('script');
-      s.src = {{ 'form-widget.js' | asset_url | json }};
-      s.defer = true;
-      document.head.appendChild(s);
-    })();
-  </script>
-{% else %}
-  {% if request.design_mode %}
-    <div style="padding: 24px; background: #f9fafb; border: 2px dashed #d1d5db; border-radius: 8px; text-align: center; color: #6b7280; font-size: 14px; font-family: sans-serif;">
-      <strong style="display: block; margin-bottom: 4px; color: #374151;">PromptForm</strong>
-      Open block settings and paste your Form ID to display a form here.
+{{- '<!-- PromptForm block -->' -}}
+
+<div {{ block.shopify_attributes }}>
+  {% if form_id != blank %}
+    <div
+      data-prompt-form
+      data-form-ulid="{{ form_id }}"
+      data-api-url="https://promptform.mesh99.com/api/public"
+      style="max-width: {{ max_w }}px; margin: 0 auto;"
+    ></div>
+  {% else %}
+    <div style="max-width: {{ max_w }}px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border: 2px dashed #d1d5db; border-radius: 10px; text-align: center; font-family: sans-serif;">
+      <p style="margin: 0 0 6px; font-size: 15px; font-weight: 600; color: #374151;">PromptForm</p>
+      <p style="margin: 0; font-size: 13px; color: #6b7280;">
+        Open the block settings panel and paste your <strong>Form ID</strong> to display your form here.
+      </p>
     </div>
   {% endif %}
-{% endif %}
+</div>
+
+<script>
+  (function () {
+    var WIDGET_SRC = {{ 'form-widget.js' | asset_url | json }};
+
+    function run() {
+      if (window.PromptFormWidget) {
+        window.PromptFormWidget.init();
+        return;
+      }
+      if (window.__pfLoading) return;
+      window.__pfLoading = true;
+      var s = document.createElement('script');
+      s.src = WIDGET_SRC;
+      s.async = true;
+      s.onload = function () {
+        window.__pfLoading = false;
+        if (window.PromptFormWidget) window.PromptFormWidget.init();
+      };
+      document.head.appendChild(s);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', run);
+    } else {
+      run();
+    }
+
+    // Re-initialize when Theme Editor reloads the section (e.g. merchant changes Form ID)
+    document.addEventListener('shopify:section:load', run);
+  })();
+</script>
 
 {% schema %}
 {
@@ -46,7 +69,7 @@
       "type": "text",
       "id": "form_id",
       "label": "Form ID",
-      "info": "Copy the Form ID from the PromptForm app and paste it here."
+      "info": "Copy the Form ID from the PromptForm app (Forms → your form → copy the ID shown at the top)."
     },
     {
       "type": "range",

@@ -220,7 +220,7 @@ export default function FormBuilder({ formId, onBack, onNavigatePricing }) {
                     <Banner tone="critical" onDismiss={() => setUpgradeError(null)}>
                         <InlineStack gap="100" wrap={false}>
                             <span>{upgradeError}</span>
-                            <Button variant="plain" onClick={onNavigatePricing}>Upgrade your plan →</Button>
+                            <Button variant="plain" onClick={onNavigatePricing}>View billing options</Button>
                         </InlineStack>
                     </Banner>
                 )}

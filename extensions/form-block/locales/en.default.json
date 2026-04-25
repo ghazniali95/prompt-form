@@ -7,10 +7,6 @@
           "label": "Form ID",
           "info": "Copy the Form ID (ULID) shown in the PromptForm app under Form details."
         },
-        "api_url": {
-          "label": "App API URL",
-          "info": "The public API URL of your PromptForm app. Update this when you go live."
-        },
         "max_width": {
           "label": "Max width (px)"
         }

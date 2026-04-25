@@ -33,4 +33,25 @@ api_version = "2025-01"
 scopes = ""
 
 [auth]
-redirect_urls = [ "https://promptform.mesh99.com/authenticate" ]
+redirect_urls = [
+  "https://promptform.mesh99.com/authenticate",
+  "https://promptform.mesh99.com/billing/callback"
+]
+
+# ---------------------------------------------------------------------------
+# Pricing plans — declared here so Shopify can verify Billing API compliance.
+# Charges are created programmatically via appSubscriptionCreate (GraphQL).
+# ---------------------------------------------------------------------------
+[[pricing_plans]]
+name            = "Starter"
+currency_code   = "USD"
+amount          = "9.00"
+interval        = "EVERY_30_DAYS"
+trial_days      = 0
+
+[[pricing_plans]]
+name            = "Growing"
+currency_code   = "USD"
+amount          = "24.00"
+interval        = "EVERY_30_DAYS"
+trial_days      = 0

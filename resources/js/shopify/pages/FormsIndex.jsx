@@ -114,6 +114,7 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
     const [submissionsForm, setSubmissionsForm] = useState(null);
     const [activePopover, setActivePopover] = useState(null);
     const [limitError, setLimitError] = useState(null);
+    const [submissionsBannerDismissed, setSubmissionsBannerDismissed] = useState(false);
 
     useEffect(() => {
         Promise.all([fetchForms(), fetchStats()]).finally(() => setLoading(false));
@@ -140,7 +141,7 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
     const handleCreateNew = () => {
         const formsLimit = stats?.forms_limit ?? null;
         if (formsLimit !== null && forms.length >= formsLimit) {
-            setLimitError(`You've reached the ${formsLimit}-form limit on your ${stats?.plan ?? 'free'} plan. Upgrade to create more forms.`);
+            setLimitError(`You've reached the ${formsLimit}-form limit on your current plan.`);
             return;
         }
         onCreateNew();
@@ -257,16 +258,16 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
                     <Banner tone="warning" onDismiss={() => setLimitError(null)}>
                         <InlineStack gap="100" wrap={false}>
                             <span>{limitError}</span>
-                            <Button variant="plain" onClick={onNavigatePricing}>Upgrade your plan →</Button>
+                            <Button variant="plain" onClick={onNavigatePricing}>View billing options</Button>
                         </InlineStack>
                     </Banner>
                 )}
 
-                {stats?.submissions_left === 0 && (
-                    <Banner tone="critical">
+                {stats?.submissions_left === 0 && !submissionsBannerDismissed && (
+                    <Banner tone="warning" onDismiss={() => setSubmissionsBannerDismissed(true)}>
                         <InlineStack gap="100" wrap={false}>
-                            <span>You've reached your submission limit.</span>
-                            <Button variant="plain" onClick={onNavigatePricing}>Upgrade your plan →</Button>
+                            <span>Your form submissions are paused — you have reached your monthly limit.</span>
+                            <Button variant="plain" onClick={onNavigatePricing}>View billing options</Button>
                         </InlineStack>
                     </Banner>
                 )}

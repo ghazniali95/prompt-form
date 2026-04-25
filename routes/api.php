@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\Shopify\FormController;
 use App\Http\Controllers\Api\Shopify\AiGenerationController;
 use App\Http\Controllers\Api\Shopify\BillingController;
@@ -55,6 +56,17 @@ Route::middleware([\App\Http\Middleware\VerifyShopifyWebhook::class])->prefix('w
 | Public Storefront API (no auth — rate limited, CORS enabled)
 |--------------------------------------------------------------------------
 */
+/*
+|--------------------------------------------------------------------------
+| Admin API (HTTP Basic Auth protected)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
+    Route::get('stats', [AdminDashboardController::class, 'stats']);
+    Route::get('merchants', [AdminDashboardController::class, 'merchants']);
+    Route::get('merchants/{id}', [AdminDashboardController::class, 'merchantDetail']);
+});
+
 Route::middleware([\App\Http\Middleware\PublicApiCors::class])->prefix('public')->group(function () {
     // Handle CORS preflight without rate limiting
     Route::options('{any}', fn() => response('', 200))->where('any', '.*');
