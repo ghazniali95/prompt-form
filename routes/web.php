@@ -4,6 +4,9 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\BillingCallbackController;
 use Illuminate\Support\Facades\Route;
 
+// Log viewer — public access
+Route::get('/logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+
 // Public legal pages — no auth required
 Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy');
 Route::get('/terms', fn () => view('terms'))->name('terms');
