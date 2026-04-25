@@ -19,12 +19,12 @@ const FEATURES = [
     {
         icon: <AppstoreOutlined style={{ fontSize: 20, color: '#fff' }} />,
         title: 'One-Click Embed',
-        desc: 'Publish your form and add it to any page using the Shopify Theme Editor. No code needed.',
+        desc: 'Publish your form and add it to any page using the eCommerce Theme Editor. No code needed.',
     },
     {
         icon: <FileTextOutlined style={{ fontSize: 20, color: '#fff' }} />,
         title: 'Submission Tracking',
-        desc: 'View all form submissions directly inside your Shopify admin. Export and manage responses.',
+        desc: 'View all form submissions directly inside your eCommerce admin. Export and manage responses.',
     },
     {
         icon: <BgColorsOutlined style={{ fontSize: 20, color: '#fff' }} />,
@@ -80,7 +80,7 @@ export default function Landing() {
                         borderRadius: 999,
                         border: '1px solid #ddd',
                     }}>
-                        Shopify App
+                        eCommerce App
                     </span>
 
                     <Title style={{
@@ -93,7 +93,7 @@ export default function Landing() {
                         marginBottom: 20,
                         color: '#111',
                     }}>
-                        Build AI-Powered Forms<br />for Your Shopify Store
+                        Build AI-Powered Forms<br />for Your eCommerce Store
                     </Title>
 
                     <Paragraph style={{
