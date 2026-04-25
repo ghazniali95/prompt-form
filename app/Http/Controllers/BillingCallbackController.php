@@ -57,7 +57,7 @@ class BillingCallbackController extends Controller
      */
     private function redirectToApp(?string $shop, string $result, ?string $host = null): RedirectResponse
     {
-        $appUrl = config('app.url');
+        $appUrl = config('app.url') . '/shopify/app';
 
         if (! $shop) {
             return redirect($appUrl);
