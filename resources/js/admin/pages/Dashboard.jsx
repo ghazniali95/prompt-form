@@ -148,15 +148,17 @@ export default function Dashboard() {
         },
         {
             title: 'Status',
-            dataIndex: 'subscription_status',
-            key: 'subscription_status',
-            width: 120,
-            render: (status) => {
-                const active = status === 'active';
+            key: 'status',
+            width: 130,
+            render: (_, record) => {
+                if (record.deleted_at) {
+                    return <Tag icon={<CloseCircleOutlined />} color="default">Uninstalled</Tag>;
+                }
+                const active = record.subscription_status === 'active';
                 return (
                     <Tag icon={active ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
-                         color={active ? 'success' : 'default'}>
-                        {active ? 'Active' : status ?? 'None'}
+                         color={active ? 'success' : 'warning'}>
+                        {active ? 'Active' : record.subscription_status ?? 'Free'}
                     </Tag>
                 );
             },
@@ -224,7 +226,7 @@ export default function Dashboard() {
 
                 <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
                     <Col xs={24} sm={12} lg={6}>
-                        <StatCard title="Total Merchants" value={stats?.total_merchants} icon={<UserOutlined />} color="#6366f1" loading={statsLoading} />
+                        <StatCard title={`All Merchants (${stats?.active_merchants ?? 0} active)`} value={stats?.total_merchants} icon={<UserOutlined />} color="#6366f1" loading={statsLoading} />
                     </Col>
                     <Col xs={24} sm={12} lg={6}>
                         <StatCard title="Total Forms" value={stats?.total_forms} icon={<FormOutlined />} color="#f59e0b" loading={statsLoading} />

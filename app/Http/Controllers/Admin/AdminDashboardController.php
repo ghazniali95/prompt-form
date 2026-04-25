@@ -19,7 +19,8 @@ class AdminDashboardController extends Controller
     public function stats(): JsonResponse
     {
         return response()->json([
-            'total_merchants'   => User::count(),
+            'total_merchants'   => User::withTrashed()->count(),
+            'active_merchants'  => User::count(),
             'total_forms'       => Form::count(),
             'published_forms'   => Form::where('is_published', true)->count(),
             'total_responses'   => FormResponse::count(),
@@ -28,8 +29,8 @@ class AdminDashboardController extends Controller
 
     public function merchants(Request $request): JsonResponse
     {
-        $query = User::withCount(['forms', 'formResponses'])
-            ->with(['forms' => fn ($q) => $q->select('id', 'shop_id', 'ulid', 'title', 'is_published', 'created_at')])
+        $query = User::withTrashed()
+            ->withCount(['forms', 'formResponses'])
             ->orderBy('created_at', 'desc');
 
         if ($search = $request->query('search')) {
@@ -46,7 +47,8 @@ class AdminDashboardController extends Controller
 
     public function merchantDetail(int $id): JsonResponse
     {
-        $merchant = User::withCount(['forms', 'formResponses'])
+        $merchant = User::withTrashed()
+            ->withCount(['forms', 'formResponses'])
             ->findOrFail($id);
 
         $forms = Form::where('shop_id', $id)
