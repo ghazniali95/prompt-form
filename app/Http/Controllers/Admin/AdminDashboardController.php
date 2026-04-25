@@ -33,8 +33,10 @@ class AdminDashboardController extends Controller
             ->orderBy('created_at', 'desc');
 
         if ($search = $request->query('search')) {
-            $query->where('name', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
+            });
         }
 
         $merchants = $query->paginate(20);
