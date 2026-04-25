@@ -9,7 +9,7 @@ function getInitialPage() {
     // or billing_error in the query string — land on the pricing page to show it.
     const params = new URLSearchParams(window.location.search);
     if (params.get('billing_success') || params.get('billing_error')) return 'pricing';
-    if (window.location.pathname === '/pricing') return 'pricing';
+    if (window.location.pathname === '/shopify/pricing') return 'pricing';
     return 'forms';
 }
 
