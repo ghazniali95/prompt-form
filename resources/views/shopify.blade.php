@@ -12,8 +12,8 @@
 </head>
 <body>
     <ui-nav-menu>
-        <a href="/" rel="home">Forms</a>
-        <a href="/pricing">Pricing</a>
+        <a href="/shopify/app" rel="home">Forms</a>
+        <a href="/shopify/pricing">Pricing</a>
     </ui-nav-menu>
     <div id="shopify-app-root"></div>
 </body>

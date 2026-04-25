@@ -2,7 +2,7 @@
 
 client_id = "352e9deba81fac32cb0727b95d682158"
 name = "PromptForm"
-application_url = "https://promptform.mesh99.com"
+application_url = "https://promptform.mesh99.com/shopify/app"
 embedded = true
 
 [build]
@@ -37,21 +37,3 @@ redirect_urls = [
   "https://promptform.mesh99.com/authenticate",
   "https://promptform.mesh99.com/billing/callback"
 ]
-
-# ---------------------------------------------------------------------------
-# Pricing plans — declared here so Shopify can verify Billing API compliance.
-# Charges are created programmatically via appSubscriptionCreate (GraphQL).
-# ---------------------------------------------------------------------------
-[[pricing_plans]]
-name            = "Starter"
-currency_code   = "USD"
-amount          = "9.00"
-interval        = "EVERY_30_DAYS"
-trial_days      = 0
-
-[[pricing_plans]]
-name            = "Growing"
-currency_code   = "USD"
-amount          = "24.00"
-interval        = "EVERY_30_DAYS"
-trial_days      = 0

@@ -3,6 +3,10 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\BillingCallbackController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
+// Public landing page — shown to anyone visiting the root URL directly
+Route::get('/', fn () => Inertia::render('Landing')->rootView('inertia'))->name('landing');
 
 // Log viewer — public access
 Route::get('/logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
@@ -11,12 +15,10 @@ Route::get('/logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy');
 Route::get('/terms', fn () => view('terms'))->name('terms');
 
-// Home route — serves our React + Polaris app.
-// SHOPIFY_MANUAL_ROUTES=home disables the package's default home route
-// so we can register our own here.
+// Shopify embedded app — SHOPIFY_MANUAL_ROUTES=home means we register the `home` route manually.
 Route::middleware(['verify.shopify'])->group(function () {
-    Route::get('/', fn() => view('shopify'))->name('home');
-    Route::get('/pricing', fn() => view('shopify'));
+    Route::get('/shopify/app', fn() => view('shopify'))->name('home');
+    Route::get('/shopify/pricing', fn() => view('shopify'));
 });
 
 // Billing callback — intentionally outside verify.shopify.
