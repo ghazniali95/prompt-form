@@ -45,9 +45,7 @@ export default function Landing() {
                 justifyContent: 'space-between',
                 height: 60,
             }}>
-                <Text style={{ fontSize: 20, fontWeight: 700, color: '#6366f1' }}>
-                    PromptForm
-                </Text>
+                <img src="/images/logo.png" alt="PromptForm" style={{ height: 36 }} />
                 <Space size="large">
                     <Link href="/privacy-policy" style={{ color: '#6b7280', fontSize: 14 }}>Privacy Policy</Link>
                     <Link href="/terms" style={{ color: '#6b7280', fontSize: 14 }}>Terms of Service</Link>
