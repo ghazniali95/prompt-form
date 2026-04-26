@@ -29,17 +29,14 @@ class BillingCallbackController extends Controller
         try {
             $billing->activateSubscription($user, $chargeId, $plan);
         } catch (\Throwable $e) {
-            Log::error('BillingCallback: activation failed — ' . $e->getMessage());
-            // If verification fails, still grant access — Shopify would not redirect
-            // here unless the merchant approved the charge.
-            $gid = str_starts_with($chargeId, 'gid://')
-                ? $chargeId
-                : "gid://shopify/AppSubscription/{$chargeId}";
-            $user->update([
-                'plan'                => $plan,
-                'shopify_charge_id'   => $gid,
-                'subscription_status' => 'active',
+            // Verification failed — do NOT grant access without a confirmed Shopify charge.
+            // Redirect the merchant back to the pricing page so they can retry.
+            Log::error('BillingCallback: activation failed — ' . $e->getMessage(), [
+                'shop'      => $shop,
+                'plan'      => $plan,
+                'charge_id' => $chargeId,
             ]);
+            return $this->redirectToApp($shop, 'error', $host);
         }
 
         return $this->redirectToApp($shop, $plan, $host);
@@ -48,12 +45,8 @@ class BillingCallbackController extends Controller
     /**
      * Redirect back into the embedded app with the billing result.
      *
-     * We redirect to our own app URL (not the Shopify admin URL) so that
-     * App Bridge can initialise from the `host` param and the SPA can read
-     * `billing_success` / `billing_error` from the query string.
-     *
-     * `host` is the base64url-encoded "{shop}/admin" string that App Bridge
-     * expects. Shopify may pass it in the callback, but if not we derive it.
+     * We redirect to our own app URL so App Bridge can initialise from the
+     * `host` param and the SPA can read billing_success / billing_error.
      */
     private function redirectToApp(?string $shop, string $result, ?string $host = null): RedirectResponse
     {
