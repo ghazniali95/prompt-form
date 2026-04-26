@@ -71,6 +71,10 @@ class BillingController extends Controller
             return response()->json(['data' => ['confirmation_url' => $confirmationUrl]]);
         } catch (\Throwable $e) {
             \Log::error('BillingController@subscribe failed: ' . $e->getMessage());
+            // Surface session-expiry errors directly so the merchant knows to reload.
+            if (str_contains($e->getMessage(), 'session has expired')) {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
             return response()->json(['error' => 'Failed to create subscription. Please try again.'], 500);
         }
     }

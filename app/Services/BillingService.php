@@ -84,6 +84,15 @@ class BillingService
                 'status' => $response['status'] ?? null,
                 'body'   => json_encode($response['body']),
             ]);
+
+            // A 401 means the stored access token is no longer valid (e.g. the
+            // merchant uninstalled and reinstalled and the token wasn't refreshed).
+            // Clear it so the next page load triggers a fresh OAuth.
+            if (($response['status'] ?? null) === 401) {
+                $user->update(['shopify_token' => null]);
+                throw new \RuntimeException('Your session has expired. Please reload the app to re-authenticate with Shopify.');
+            }
+
             throw new \RuntimeException(
                 'Shopify billing error: [' . ($response['status'] ?? '?') . '] ' . json_encode($response['body'])
             );
