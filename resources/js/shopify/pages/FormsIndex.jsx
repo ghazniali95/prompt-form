@@ -14,9 +14,80 @@ import {
     InlineGrid,
     Popover,
     ActionList,
+    Box,
+    Divider,
 } from '@shopify/polaris';
-import { XSmallIcon } from '@shopify/polaris-icons';
+import { XSmallIcon, ThemeIcon } from '@shopify/polaris-icons';
 import { MenuHorizontalIcon } from '@shopify/polaris-icons';
+
+const ONBOARDING_KEY = 'pf_theme_onboarding_dismissed';
+const CLIENT_ID = '352e9deba81fac32cb0727b95d682158';
+
+function ThemeOnboardingCard({ shopDomain }) {
+    const [dismissed, setDismissed] = useState(
+        () => localStorage.getItem(ONBOARDING_KEY) === '1'
+    );
+
+    if (dismissed || !shopDomain) return null;
+
+    const deepLink = `https://${shopDomain}/admin/themes/current/editor?template=index&addAppBlockId=${CLIENT_ID}/form&target=newAppsSection`;
+
+    const steps = [
+        'Create a form and publish it',
+        'Open the form and click "Copy Form ID"',
+        'Click "Open Theme Editor" below — the PromptForm block will be ready to add',
+        'In the block settings, paste your Form ID and save',
+    ];
+
+    return (
+        <Card>
+            <BlockStack gap="400">
+                <InlineStack align="space-between" blockAlign="start">
+                    <BlockStack gap="100">
+                        <Text variant="headingMd" as="h2">Add PromptForm to your theme</Text>
+                        <Text variant="bodySm" tone="subdued">Follow these steps to display your form on your storefront</Text>
+                    </BlockStack>
+                    <Button
+                        icon={XSmallIcon}
+                        variant="plain"
+                        accessibilityLabel="Dismiss"
+                        onClick={() => { localStorage.setItem(ONBOARDING_KEY, '1'); setDismissed(true); }}
+                    />
+                </InlineStack>
+
+                <Divider />
+
+                <InlineGrid columns={{ xs: 1, sm: 2, md: 4 }} gap="300">
+                    {steps.map((step, i) => (
+                        <BlockStack key={i} gap="200">
+                            <InlineStack gap="200" blockAlign="start" wrap={false}>
+                                <Box
+                                    background="bg-surface-secondary"
+                                    borderRadius="full"
+                                    minWidth="24px"
+                                    padding="100"
+                                >
+                                    <Text variant="bodySm" tone="subdued" fontWeight="bold" alignment="center">{i + 1}</Text>
+                                </Box>
+                                <Text variant="bodySm">{step}</Text>
+                            </InlineStack>
+                        </BlockStack>
+                    ))}
+                </InlineGrid>
+
+                <InlineStack align="start">
+                    <Button
+                        variant="primary"
+                        icon={ThemeIcon}
+                        onClick={() => { window.open(deepLink, '_top'); }}
+                    >
+                        Open Theme Editor
+                    </Button>
+                </InlineStack>
+            </BlockStack>
+        </Card>
+    );
+}
 import { useAuthenticatedFetch } from '../hooks/useAuthenticatedFetch';
 import FormPreview from '../components/FormPreview';
 import SubmissionsDrawer from '../components/SubmissionsDrawer';
@@ -271,6 +342,8 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
                         </InlineStack>
                     </Banner>
                 )}
+
+                <ThemeOnboardingCard shopDomain={window.__shopDomain} />
 
                 {/* Analytics counters */}
                 <InlineGrid columns={3} gap="400">

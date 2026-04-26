@@ -16,6 +16,7 @@
         <a href="/shopify/app" rel="home">Forms</a>
         <a href="/shopify/pricing">Pricing</a>
     </ui-nav-menu>
+    <script>window.__shopDomain = "{{ Auth::user()?->name ?? '' }}";</script>
     <div id="shopify-app-root"></div>
 </body>
 </html>
