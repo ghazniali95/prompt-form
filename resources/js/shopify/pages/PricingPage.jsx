@@ -158,6 +158,9 @@ export default function PricingPage({ onBack }) {
         if (params.get('billing_success')) {
             setSuccessMsg(`You're now on the ${params.get('billing_success')} plan!`);
         }
+        if (params.get('billing_error')) {
+            setError('The subscription was not activated. You can choose a plan below whenever you\'re ready.');
+        }
 
         api.get('/api/shopify/billing/current')
             .then(({ data }) => setCurrentPlanId(data.data.plan))
