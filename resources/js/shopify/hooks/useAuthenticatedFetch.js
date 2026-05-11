@@ -2,11 +2,6 @@ import { useAppBridge } from '@shopify/app-bridge-react';
 import axios from 'axios';
 import { useMemo } from 'react';
 
-/**
- * Returns an axios instance that automatically injects the Shopify
- * session token into every request's Authorization header.
- * Required by the verify.shopify middleware on the Laravel backend.
- */
 export function useAuthenticatedFetch() {
     const shopify = useAppBridge();
 
@@ -16,7 +11,6 @@ export function useAuthenticatedFetch() {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                // Bypass ngrok browser warning interstitial
                 'ngrok-skip-browser-warning': 'true',
             },
         });
@@ -26,6 +20,22 @@ export function useAuthenticatedFetch() {
             config.headers['Authorization'] = `Bearer ${token}`;
             return config;
         });
+
+        // On 400 (invalid token) or 403 (expired token), get a fresh session
+        // token from App Bridge and retry the request once.
+        instance.interceptors.response.use(
+            (response) => response,
+            async (error) => {
+                const status = error.response?.status;
+                if ((status === 400 || status === 403) && !error.config._retried) {
+                    error.config._retried = true;
+                    const token = await shopify.idToken();
+                    error.config.headers['Authorization'] = `Bearer ${token}`;
+                    return instance.request(error.config);
+                }
+                return Promise.reject(error);
+            }
+        );
 
         return instance;
     }, [shopify]);
