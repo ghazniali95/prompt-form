@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AiGeneration extends Model
 {
     protected $fillable = [
-        'shop_id',
+        'user_id',
         'form_id',
         'prompt',
         'generated_schema',
@@ -25,9 +25,9 @@ class AiGeneration extends Model
         ];
     }
 
-    public function shop()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'shop_id');
+        return $this->belongsTo(User::class);
     }
 
     public function form()

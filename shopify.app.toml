@@ -1,8 +1,17 @@
-# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+# Staging Shopify app — PHP/Laravel dev workflow:
+#
+#   1. Start ngrok:           ngrok http 8000
+#   2. Update APP_URL in .env to the new ngrok URL
+#   3. Update the ngrok URL below, then run:
+#                             shopify app dev --config=staging --tunnel-url=https://xxx.ngrok-free.app:443
+#   4. Start PHP:             php artisan serve
+#   5. Start Vite:            npm run dev
+#
+# Keep shopify.app.production.toml pointing at PROD — never run without --config=staging.
 
-client_id = "352e9deba81fac32cb0727b95d682158"
-name = "PromptForm"
-application_url = "https://promptform.mesh99.com/shopify/app"
+client_id = "581a170edca607affc7a878b55c6eee0"
+name = "PromptForm (Staging)"
+application_url = "https://84eb-182-185-80-23.ngrok-free.app/auth/shopify/begin"
 embedded = true
 
 [build]
@@ -13,27 +22,26 @@ dev_store_url = "bigdatashopgpttest.myshopify.com"
 api_version = "2025-01"
 
   [[webhooks.subscriptions]]
-  uri = "https://promptform.mesh99.com/api/webhooks/gdpr/customers-data-request"
+  uri = "https://84eb-182-185-80-23.ngrok-free.app/api/shopify/webhooks"
   compliance_topics = [ "customers/data_request" ]
 
   [[webhooks.subscriptions]]
-  uri = "https://promptform.mesh99.com/api/webhooks/gdpr/customers-redact"
+  uri = "https://84eb-182-185-80-23.ngrok-free.app/api/shopify/webhooks"
   compliance_topics = [ "customers/redact" ]
 
   [[webhooks.subscriptions]]
-  uri = "https://promptform.mesh99.com/api/webhooks/gdpr/shop-redact"
+  uri = "https://84eb-182-185-80-23.ngrok-free.app/api/shopify/webhooks"
   compliance_topics = [ "shop/redact" ]
 
   [[webhooks.subscriptions]]
   topics = [ "app/uninstalled" ]
-  uri = "https://promptform.mesh99.com/api/webhooks/app/uninstalled"
+  uri = "https://84eb-182-185-80-23.ngrok-free.app/api/shopify/webhooks"
 
 [access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = ""
 
 [auth]
 redirect_urls = [
-  "https://promptform.mesh99.com/authenticate",
-  "https://promptform.mesh99.com/billing/callback"
+  "https://84eb-182-185-80-23.ngrok-free.app/auth/shopify/callback",
+  "https://84eb-182-185-80-23.ngrok-free.app/auth/shopify/billing/callback"
 ]

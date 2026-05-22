@@ -1,0 +1,41 @@
+# Production Shopify app — deploy with:
+#   shopify app deploy --config=production
+#
+# Never run shopify app dev with this config.
+
+client_id = "352e9deba81fac32cb0727b95d682158"
+name = "PromptForm"
+application_url = "https://promptform.mesh99.com/auth/shopify/begin"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = false
+dev_store_url = "bigdatashopgpttest.myshopify.com"
+
+[webhooks]
+api_version = "2025-01"
+
+  [[webhooks.subscriptions]]
+  uri = "https://promptform.mesh99.com/api/shopify/webhooks"
+  compliance_topics = [ "customers/data_request" ]
+
+  [[webhooks.subscriptions]]
+  uri = "https://promptform.mesh99.com/api/shopify/webhooks"
+  compliance_topics = [ "customers/redact" ]
+
+  [[webhooks.subscriptions]]
+  uri = "https://promptform.mesh99.com/api/shopify/webhooks"
+  compliance_topics = [ "shop/redact" ]
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "https://promptform.mesh99.com/api/shopify/webhooks"
+
+[access_scopes]
+scopes = ""
+
+[auth]
+redirect_urls = [
+  "https://promptform.mesh99.com/auth/shopify/callback",
+  "https://promptform.mesh99.com/auth/shopify/billing/callback"
+]

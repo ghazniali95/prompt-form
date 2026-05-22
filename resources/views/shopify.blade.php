@@ -7,16 +7,16 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     {{-- App Bridge v4: must load before React app, sets up window.shopify global --}}
     <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
-            data-api-key="{{ config('shopify-app.api_key') }}"></script>
+            data-api-key="{{ config('services.shopify.client_id') }}"></script>
     @viteReactRefresh
-    @vite(['resources/js/shopify/main.jsx'])
+    @vite(['resources/js/shopify/embedded/main.jsx'])
 </head>
 <body>
     <ui-nav-menu>
         <a href="/shopify/app" rel="home">Forms</a>
         <a href="/shopify/pricing">Pricing</a>
     </ui-nav-menu>
-    <script>window.__shopDomain = "{{ Auth::user()?->name ?? '' }}";</script>
+    <script>window.__shopDomain = "{{ $shopDomain ?? '' }}";</script>
     <div id="shopify-app-root"></div>
 </body>
 </html>

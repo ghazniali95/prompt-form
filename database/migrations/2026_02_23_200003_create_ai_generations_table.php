@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('ai_generations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shop_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('form_id')->nullable()->constrained('forms')->nullOnDelete();
             $table->text('prompt');
             $table->json('generated_schema')->nullable();

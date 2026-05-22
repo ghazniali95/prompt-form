@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1\Analytics;
+
+use App\Http\Controllers\Controller;
+use App\Services\PlanLimits;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+
+class StatsController extends Controller
+{
+    public function index(): JsonResponse
+    {
+        $user   = Auth::user();
+        $plan   = $user->plan ?? 'free';
+        $limits = PlanLimits::forUser($user);
+
+        $totalForms       = $user->forms()->count();
+        $totalSubmissions = PlanLimits::totalSubmissions($user);
+
+        $submissionLimit = $limits['submissions'];
+        $submissionsLeft = $submissionLimit === PHP_INT_MAX
+            ? null
+            : max(0, $submissionLimit - $totalSubmissions);
+
+        $formLimit = $limits['forms'];
+
+        return response()->json([
+            'data' => [
+                'plan'             => $plan,
+                'total_forms'      => $totalForms,
+                'forms_limit'      => $formLimit === PHP_INT_MAX ? null : $formLimit,
+                'total_submissions' => $totalSubmissions,
+                'plan_limit'       => $submissionLimit === PHP_INT_MAX ? null : $submissionLimit,
+                'submissions_left' => $submissionsLeft,
+            ],
+        ]);
+    }
+}

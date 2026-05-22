@@ -10,7 +10,7 @@ class FormResponse extends Model
 
     protected $fillable = [
         'form_id',
-        'shop_id',
+        'user_id',
         'data',
         'metadata',
         'submitted_at',
@@ -30,8 +30,8 @@ class FormResponse extends Model
         return $this->belongsTo(Form::class);
     }
 
-    public function shop()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'shop_id');
+        return $this->belongsTo(User::class);
     }
 }

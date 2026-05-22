@@ -14,7 +14,7 @@ export default defineConfig({
         outDir: 'extensions/form-block/assets',
         emptyOutDir: false,
         lib: {
-            entry: 'resources/js/widget/main.jsx',
+            entry: 'resources/js/widgets/Shopify/main.jsx',
             name: 'PromptFormWidget',
             fileName: () => 'form-widget.js',
             formats: ['iife'],

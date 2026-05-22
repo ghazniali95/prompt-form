@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'shopify' => [
+        'client_id'     => env('SHOPIFY_API_KEY', ''),
+        'client_secret' => env('SHOPIFY_API_SECRET', ''),
+        'api_version'   => '2025-01',
+        'scopes'        => '',
+        'app_url'       => env('APP_URL') . '/auth/shopify/begin',
+        'billing_test'  => (bool) env('SHOPIFY_BILLING_TEST', false),
+        'redirect_uri'  => env('APP_URL') . '/auth/shopify/callback',
+    ],
+
 ];

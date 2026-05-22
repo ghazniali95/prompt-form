@@ -1,34 +1,53 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\BillingCallbackController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\GuestController;
+use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Forms\FormsController;
+use App\Http\Controllers\Home\HomeController;
+use App\Http\Controllers\Shopify\AuthController as ShopifyAuthController;
+use App\Http\Controllers\Shopify\BillingCallbackController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-// Public landing page — shown to anyone visiting the root URL directly
-Route::get('/', fn () => Inertia::render('Landing')->rootView('inertia'))->name('landing');
+/*
+|--------------------------------------------------------------------------
+| Public / Marketing
+|--------------------------------------------------------------------------
+*/
+Route::get('/',               [HomeController::class, 'index'])->name('welcome');
+Route::get('/privacy-policy', [HomeController::class, 'privacy'])->name('privacy');
+Route::get('/terms',          [HomeController::class, 'terms'])->name('terms');
 
-// Log viewer — public access
+/*
+|--------------------------------------------------------------------------
+| Web Auth — login / register pages and JSON endpoints (Inertia SPA)
+|--------------------------------------------------------------------------
+*/
+Route::get('/login',    [GuestController::class, 'login'])->name('login');
+Route::get('/register', [GuestController::class, 'register'])->name('register');
+
+Route::post('/auth/login',    [AuthController::class, 'login'])->name('auth.login');
+Route::post('/auth/register', [AuthController::class, 'register'])->name('auth.register');
+Route::post('/auth/logout',   [AuthController::class, 'logout'])->name('auth.logout');
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard
+|--------------------------------------------------------------------------
+*/
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/forms',     [FormsController::class, 'index'])->name('forms.index');
+
 Route::get('/logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
-// Public legal pages — no auth required
-Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy');
-Route::get('/terms', fn () => view('terms'))->name('terms');
+/*
+|--------------------------------------------------------------------------
+| Shopify OAuth + Billing
+|--------------------------------------------------------------------------
+*/
+Route::get('/auth/shopify/begin',    [ShopifyAuthController::class, 'begin'])->name('shopify.auth.begin');
+Route::get('/auth/shopify/callback', [ShopifyAuthController::class, 'callback'])->name('shopify.auth.callback');
 
-// Shopify embedded app — SHOPIFY_MANUAL_ROUTES=home means we register the `home` route manually.
-Route::middleware(['verify.shopify'])->group(function () {
-    Route::get('/shopify/app', fn() => view('shopify'))->name('home');
-    Route::get('/shopify/pricing', fn() => view('shopify'));
-});
-
-// Billing callback — intentionally outside verify.shopify.
-// After the merchant approves/declines on Shopify's billing page, Shopify
-// does a top-level browser redirect here. There is no App Bridge session at
-// this point so verify.shopify would loop trying to re-authenticate.
-// We resolve the user from the `shop` query param Shopify sends.
-Route::get('/billing/callback', BillingCallbackController::class)->name('billing.callback');
-
-// Admin panel — HTTP Basic Auth protected
-Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
-    Route::get('/{any?}', [AdminDashboardController::class, 'index'])->where('any', '.*');
-});
+// Billing callback — outside verify.shopify; Shopify does a top-level redirect here
+// after merchant approves/declines. No App Bridge session at this point.
+Route::get('/auth/shopify/billing/callback', BillingCallbackController::class)->name('billing.callback');

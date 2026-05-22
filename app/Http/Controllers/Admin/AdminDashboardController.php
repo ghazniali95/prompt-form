@@ -8,12 +8,27 @@ use App\Models\FormResponse;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Inertia\Inertia;
 
-class AdminDashboardController extends Controller
+class AdminDashboardController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('admin.auth'),
+        ];
+    }
+
     public function index()
     {
-        return view('admin');
+        return Inertia::render('Admin/Dashboard')->rootView('web');
+    }
+
+    public function merchantPage(int $id)
+    {
+        return Inertia::render('Admin/MerchantAccount', ['merchantId' => $id])->rootView('web');
     }
 
     public function stats(): JsonResponse
@@ -51,7 +66,7 @@ class AdminDashboardController extends Controller
             ->withCount(['forms', 'formResponses'])
             ->findOrFail($id);
 
-        $forms = Form::where('shop_id', $id)
+        $forms = Form::where('user_id', $id)
             ->withCount('responses')
             ->orderBy('created_at', 'desc')
             ->get()
