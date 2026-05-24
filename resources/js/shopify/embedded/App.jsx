@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Frame } from '@shopify/polaris';
+import React, { useState, useEffect } from 'react';
+import { Frame, Spinner } from '@shopify/polaris';
+import { useAuthenticatedFetch } from './hooks/useAuthenticatedFetch';
 import FormsIndex from './FormsIndex';
 import FormBuilder from './FormBuilder';
 import PricingPage from './PricingPage';
+import OnboardingPage from './OnboardingPage';
 
 function getInitialPage() {
-    // After a billing callback Shopify redirects to our app with billing_success
-    // or billing_error in the query string — land on the pricing page to show it.
     const params = new URLSearchParams(window.location.search);
     if (params.get('billing_success') || params.get('billing_error')) return 'pricing';
     if (window.location.pathname === '/shopify/pricing') return 'pricing';
@@ -14,8 +14,18 @@ function getInitialPage() {
 }
 
 export default function App() {
-    const [currentPage, setCurrentPage] = useState(getInitialPage);
-    const [editingFormId, setEditingFormId] = useState(null);
+    const api = useAuthenticatedFetch();
+    const [onboardingChecked, setOnboardingChecked] = useState(false);
+    const [needsOnboarding, setNeedsOnboarding]     = useState(false);
+    const [currentPage, setCurrentPage]             = useState(getInitialPage);
+    const [editingFormId, setEditingFormId]         = useState(null);
+
+    useEffect(() => {
+        api.get('/api/v1/onboarding/status')
+            .then(({ data }) => setNeedsOnboarding(data.data.needs_onboarding))
+            .catch(() => {})
+            .finally(() => setOnboardingChecked(true));
+    }, []);
 
     const navigate = (page, formId = null) => {
         setCurrentPage(page);
@@ -23,6 +33,24 @@ export default function App() {
     };
 
     const navigateToPricing = () => navigate('pricing');
+
+    if (!onboardingChecked) {
+        return (
+            <Frame>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                    <Spinner size="large" />
+                </div>
+            </Frame>
+        );
+    }
+
+    if (needsOnboarding) {
+        return (
+            <Frame>
+                <OnboardingPage onDone={() => setNeedsOnboarding(false)} />
+            </Frame>
+        );
+    }
 
     const renderPage = () => {
         if (currentPage === 'builder') {
