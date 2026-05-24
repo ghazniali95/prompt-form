@@ -5,6 +5,7 @@
     "scripts": {
         "build": "vite build",
         "build:widget": "vite build --config vite.widget.config.js",
+        "build:embed": "vite build --config vite.embed.config.js",
         "dev": "vite",
         "dev:all": "concurrently \"php artisan serve\" \"vite\""
     },
@@ -28,7 +29,6 @@
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-hook-form": "^7.71.2",
-        "react-router-dom": "^7.14.2",
         "recharts": "^3.7.0",
         "zustand": "^5.0.11"
     }

@@ -3,36 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Form extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
-        'shop_id',
+        'user_id',
         'ulid',
         'title',
-        'schema',
-        'styles',
-        'steps',
-        'settings',
-        'display',
-        'image',
-        'cookies',
-        'post_submit',
+        'html_content',
+        'compiled_content',
+        'layout_type',
         'is_published',
+        'views',
     ];
 
     protected function casts(): array
     {
         return [
-            'schema'       => 'array',
-            'styles'       => 'array',
-            'steps'        => 'array',
-            'settings'     => 'array',
-            'display'      => 'array',
-            'image'        => 'array',
-            'cookies'      => 'array',
-            'post_submit'  => 'array',
             'is_published' => 'boolean',
         ];
     }
@@ -44,9 +35,9 @@ class Form extends Model
         });
     }
 
-    public function shop()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'shop_id');
+        return $this->belongsTo(User::class);
     }
 
     public function responses()
@@ -57,6 +48,11 @@ class Form extends Model
     public function versions()
     {
         return $this->hasMany(FormVersion::class);
+    }
+
+    public function conversations()
+    {
+        return $this->morphMany(AiConversation::class, 'conversable');
     }
 
     public function aiGenerations()

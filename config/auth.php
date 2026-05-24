@@ -36,9 +36,15 @@ return [
     */
 
     'guards' => [
+        // Used by laravel-shopify package — logs in Integration as the authenticated entity
         'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
+            'driver'   => 'session',
+            'provider' => 'integrations',
+        ],
+        // Used for web / WooCommerce user login
+        'web-users' => [
+            'driver'   => 'session',
+            'provider' => 'web_users',
         ],
     ],
 
@@ -60,15 +66,16 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        // laravel-shopify package uses this — points to Integration model
+        'integrations' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model'  => App\Models\Integration::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        // Web / WooCommerce user login
+        'web_users' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\User::class,
+        ],
     ],
 
     /*

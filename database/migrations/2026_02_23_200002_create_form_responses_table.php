@@ -11,9 +11,9 @@ return new class extends Migration
         Schema::create('form_responses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('form_id')->constrained('forms')->cascadeOnDelete();
-            $table->foreignId('shop_id')->constrained('users')->cascadeOnDelete();
-            $table->json('data');               // Submitted field values
-            $table->json('metadata')->nullable(); // Hashed IP, user agent, referrer
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->json('data');
+            $table->json('metadata')->nullable();
             $table->timestamp('submitted_at');
         });
     }

@@ -1,34 +1,97 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\BillingCallbackController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\GuestController;
+use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Web\AnalyticsController;
+use App\Http\Controllers\Web\IntegrationsController;
+use App\Http\Controllers\Web\OnboardingController;
+use App\Http\Controllers\Web\PricingController;
+use App\Http\Controllers\Web\ProfileController;
+use App\Http\Controllers\Web\SupportController;
+use App\Http\Controllers\Web\TemplatesController;
+use App\Http\Controllers\Forms\FormsController;
+use App\Http\Controllers\Submissions\SubmissionsController;
+use App\Http\Controllers\Home\HomeController;
+use App\Http\Controllers\Billing\StripeCallbackController;
+use App\Http\Controllers\Billing\StripeWebhookController;
+use App\Http\Controllers\Shopify\AuthController as ShopifyAuthController;
+use App\Http\Controllers\Shopify\BillingCallbackController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-// Public landing page — shown to anyone visiting the root URL directly
-Route::get('/', fn () => Inertia::render('Landing')->rootView('inertia'))->name('landing');
+/*
+|--------------------------------------------------------------------------
+| Public / Marketing
+|--------------------------------------------------------------------------
+*/
+// Embed script — served with CORS + long-term cache headers
+Route::get('/embed.js', function () {
+    $path = public_path('embed.js');
+    if (! file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path, [
+        'Content-Type'  => 'application/javascript',
+        'Cache-Control' => 'public, max-age=86400',
+        'Access-Control-Allow-Origin' => '*',
+    ]);
+});
 
-// Log viewer — public access
+Route::get('/',               [HomeController::class, 'index'])->name('welcome');
+Route::get('/privacy-policy', [HomeController::class, 'privacy'])->name('privacy');
+Route::get('/terms',          [HomeController::class, 'terms'])->name('terms');
+
+/*
+|--------------------------------------------------------------------------
+| Web Auth — login / register pages and JSON endpoints (Inertia SPA)
+|--------------------------------------------------------------------------
+*/
+Route::get('/login',    [GuestController::class, 'login'])->name('login');
+Route::get('/register', [GuestController::class, 'register'])->name('register');
+
+Route::post('/auth/login',    [AuthController::class, 'login'])->name('auth.login');
+Route::post('/auth/register', [AuthController::class, 'register'])->name('auth.register');
+Route::post('/auth/logout',   [AuthController::class, 'logout'])->name('auth.logout');
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard
+|--------------------------------------------------------------------------
+*/
+Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding');
+
+Route::get('/dashboard',                [DashboardController::class,  'index'])->name('dashboard');
+Route::get('/forms',                    [FormsController::class,      'index'])->name('forms.index');
+Route::get('/submissions',              [SubmissionsController::class,'index'])->name('submissions.index');
+Route::get('/templates',    [TemplatesController::class,   'index'])->name('web.templates');
+Route::get('/analytics',    [AnalyticsController::class,   'index'])->name('web.analytics');
+Route::get('/integrations', [IntegrationsController::class, 'index'])->name('web.integrations');
+Route::get('/pricing',      [PricingController::class,      'index'])->name('web.pricing');
+Route::get('/support',      [SupportController::class,      'index'])->name('web.support');
+Route::get('/web/profile',  [ProfileController::class,      'index'])->name('web.profile');
+
 Route::get('/logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
-// Public legal pages — no auth required
-Route::get('/privacy-policy', fn () => view('privacy-policy'))->name('privacy');
-Route::get('/terms', fn () => view('terms'))->name('terms');
+/*
+|--------------------------------------------------------------------------
+| Shopify OAuth + Billing
+|--------------------------------------------------------------------------
+*/
+Route::get('/auth/shopify/begin',    [ShopifyAuthController::class, 'begin'])->name('shopify.auth.begin');
+Route::get('/auth/shopify/callback', [ShopifyAuthController::class, 'callback'])->name('shopify.auth.callback');
 
-// Shopify embedded app — SHOPIFY_MANUAL_ROUTES=home means we register the `home` route manually.
-Route::middleware(['verify.shopify'])->group(function () {
-    Route::get('/shopify/app', fn() => view('shopify'))->name('home');
-    Route::get('/shopify/pricing', fn() => view('shopify'));
-});
+// Shopify billing callback — no App Bridge session, top-level redirect
+Route::get('/auth/shopify/billing/callback', BillingCallbackController::class)->name('billing.callback');
 
-// Billing callback — intentionally outside verify.shopify.
-// After the merchant approves/declines on Shopify's billing page, Shopify
-// does a top-level browser redirect here. There is no App Bridge session at
-// this point so verify.shopify would loop trying to re-authenticate.
-// We resolve the user from the `shop` query param Shopify sends.
-Route::get('/billing/callback', BillingCallbackController::class)->name('billing.callback');
+/*
+|--------------------------------------------------------------------------
+| Stripe Billing Callbacks
+|--------------------------------------------------------------------------
+*/
+Route::get('/billing/stripe/success', [StripeCallbackController::class, 'success'])->name('billing.stripe.success');
+Route::get('/billing/stripe/cancel',  [StripeCallbackController::class, 'cancel'])->name('billing.stripe.cancel');
 
-// Admin panel — HTTP Basic Auth protected
-Route::middleware(['admin.auth'])->prefix('admin')->group(function () {
-    Route::get('/{any?}', [AdminDashboardController::class, 'index'])->where('any', '.*');
-});
+// Stripe webhooks — no CSRF, no auth
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('stripe.webhook');

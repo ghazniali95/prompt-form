@@ -10,14 +10,15 @@ return new class extends Migration
     {
         Schema::create('forms', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shop_id')->constrained('users')->cascadeOnDelete();
-            $table->ulid('ulid')->unique(); // Public-facing ID for storefront API
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->ulid('ulid')->unique();
             $table->string('title');
-            $table->json('schema')->nullable();    // Form field definitions
-            $table->json('styles')->nullable();    // Colors, fonts, layout
-            $table->json('steps')->nullable();     // Multi-step config
-            $table->json('settings')->nullable();  // Submit text, success message, redirect URL
+            $table->longText('html_content')->nullable();
+            $table->string('layout_type')->nullable();
+            $table->longText('compiled_content')->nullable();
             $table->boolean('is_published')->default(false);
+            $table->unsignedInteger('views')->default(0);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

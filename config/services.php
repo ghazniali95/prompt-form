@@ -35,4 +35,24 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'key'            => env('STRIPE_KEY'),
+        'secret'         => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'plans' => [
+            'starter' => env('STRIPE_PRICE_STARTER'),
+            'growing' => env('STRIPE_PRICE_GROWING'),
+        ],
+    ],
+
+    'shopify' => [
+        'client_id'     => env('SHOPIFY_API_KEY', ''),
+        'client_secret' => env('SHOPIFY_API_SECRET', ''),
+        'api_version'   => '2025-01',
+        'scopes'        => '',
+        'app_url'       => env('APP_URL') . '/auth/shopify/begin',
+        'billing_test'  => (bool) env('SHOPIFY_BILLING_TEST', false),
+        'redirect_uri'  => env('APP_URL') . '/auth/shopify/callback',
+    ],
+
 ];
