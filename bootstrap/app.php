@@ -31,6 +31,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Session\Middleware\StartSession::class,
         ]);
 
+        // Share authenticated user data (plan, AI usage) with all Inertia responses
+        $middleware->web(\App\Http\Middleware\HandleInertiaRequests::class);
+
         // Trust all proxies — required for ngrok tunnel
         $middleware->trustProxies(at: '*');
 

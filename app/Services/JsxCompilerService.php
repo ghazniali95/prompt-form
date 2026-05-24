@@ -14,7 +14,7 @@ class JsxCompilerService
     }
 
     /**
-     * Compile JSX source to plain JS using esbuild.
+     * Compile JSX source to plain JS using esbuild via stdin.
      * Returns the compiled JS string, or null if compilation fails.
      */
     public function compile(string $jsxCode): ?string
@@ -24,27 +24,40 @@ class JsxCompilerService
             return null;
         }
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'pf_jsx_') . '.jsx';
+        $cmd = escapeshellarg($this->esbuild)
+            . ' --loader=jsx --platform=browser 2>&1';
 
-        try {
-            file_put_contents($tmpFile, $jsxCode);
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
 
-            $cmd = escapeshellarg($this->esbuild)
-                . ' ' . escapeshellarg($tmpFile)
-                . ' --loader=jsx --platform=browser 2>&1';
+        $process = proc_open($cmd, $descriptors, $pipes);
 
-            $output   = shell_exec($cmd);
-            $exitCode = 0;
-
-            // esbuild exits non-zero on error; check for error markers in output
-            if (! $output || str_contains($output, '[ERROR]')) {
-                Log::warning('JsxCompilerService: compilation failed', ['output' => $output]);
-                return null;
-            }
-
-            return $output;
-        } finally {
-            @unlink($tmpFile);
+        if (! is_resource($process)) {
+            Log::warning('JsxCompilerService: failed to open esbuild process');
+            return null;
         }
+
+        fwrite($pipes[0], $jsxCode);
+        fclose($pipes[0]);
+
+        $stdout = stream_get_contents($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+
+        $exitCode = proc_close($process);
+
+        if ($exitCode !== 0 || str_contains((string) $stderr, '[ERROR]')) {
+            Log::warning('JsxCompilerService: compilation failed', [
+                'exit_code' => $exitCode,
+                'stderr'    => $stderr,
+            ]);
+            return null;
+        }
+
+        return $stdout ?: null;
     }
 }

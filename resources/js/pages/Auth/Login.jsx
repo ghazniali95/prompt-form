@@ -280,7 +280,7 @@ export default function Login() {
                 <div style={{ width: '45%', minWidth: 400, flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '48px 64px' }}>
 
                     <Link href="/">
-                        <img src="/images/logo.png" alt="PromptForm" style={{ height: 36 }} />
+                        <img src="/images/icon.png" alt="PromptForm" style={{ height: 44, width: 'auto' }} />
                     </Link>
 
                     <div style={{ maxWidth: 400, width: '100%', margin: '0 auto' }}>

@@ -5,8 +5,9 @@ import {
 import {
     ArrowLeftOutlined, SendOutlined, RobotOutlined, UserOutlined,
     SaveOutlined, CheckOutlined, DesktopOutlined, MobileOutlined,
-    CopyOutlined, LoadingOutlined, EditOutlined,
+    CopyOutlined, LoadingOutlined, EditOutlined, ThunderboltOutlined,
 } from '@ant-design/icons';
+import { router } from '@inertiajs/react';
 import axios from 'axios';
 
 // Wraps React JSX componentCode (Tailwind) in a self-contained iframe document.
@@ -59,6 +60,37 @@ const WELCOME_MESSAGE = {
 
 function MessageBubble({ msg }) {
     const isAi = msg.role === 'assistant';
+
+    if (msg.isLimitReached) {
+        return (
+            <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'flex-start' }}>
+                <Avatar size={32} icon={<ThunderboltOutlined />} style={{ background: '#f97316', flexShrink: 0, fontSize: 14 }} />
+                <div style={{
+                    maxWidth: '80%', background: '#fff7ed',
+                    borderRadius: '4px 14px 14px 14px', padding: '12px 16px',
+                    border: '1px solid #fed7aa',
+                }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#c2410c', marginBottom: 6 }}>
+                        AI Usage limit reached
+                    </div>
+                    <div style={{ fontSize: 13, lineHeight: 1.6, color: '#374151', marginBottom: 10 }}>
+                        You've used all your AI Usage for this month. Upgrade your plan to keep building forms with AI.
+                    </div>
+                    <button
+                        onClick={() => router.visit('/pricing')}
+                        style={{
+                            background: '#f97316', color: '#fff', border: 'none',
+                            borderRadius: 8, padding: '6px 16px', fontSize: 13,
+                            fontWeight: 700, cursor: 'pointer',
+                        }}
+                    >
+                        Upgrade your plan
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div style={{
             display: 'flex',
@@ -142,9 +174,11 @@ export default function AiFormDrawer({ open, form, onClose, onFormUpdated }) {
             .finally(() => setLoading(false));
     }, [open, form?.id]);
 
+    const isLimitReached = messages.some(m => m.isLimitReached);
+
     const handleSend = useCallback(async () => {
         const text = input.trim();
-        if (!text || thinking || !form?.id) return;
+        if (!text || thinking || !form?.id || isLimitReached) return;
 
         setInput('');
         const userMsg = { id: `u-${Date.now()}`, role: 'user', content: text };
@@ -157,13 +191,20 @@ export default function AiFormDrawer({ open, form, onClose, onFormUpdated }) {
             setHtml(html_content);
             setMessages(prev => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: reply }]);
         } catch (err) {
-            const errMsg = err.response?.data?.error ?? err.response?.data?.message ?? 'AI generation failed. Please try again.';
-            message.error(errMsg);
-            setMessages(prev => prev.filter(m => m.id !== userMsg.id));
+            const data = err.response?.data ?? {};
+            if (data.error === 'ai_limit_reached') {
+                setMessages(prev => [
+                    ...prev.filter(m => m.id !== userMsg.id),
+                    { id: `limit-${Date.now()}`, role: 'assistant', isLimitReached: true },
+                ]);
+            } else {
+                message.error(data.message ?? 'AI generation failed. Please try again.');
+                setMessages(prev => prev.filter(m => m.id !== userMsg.id));
+            }
         } finally {
             setThinking(false);
         }
-    }, [input, thinking, form?.id]);
+    }, [input, thinking, form?.id, isLimitReached]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSend();
@@ -280,16 +321,16 @@ export default function AiFormDrawer({ open, form, onClose, onFormUpdated }) {
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder="Describe changes or ask for a new form…"
+                                placeholder={isLimitReached ? 'AI Usage limit reached — upgrade to continue' : 'Describe changes or ask for a new form…'}
                                 autoSize={{ minRows: 2, maxRows: 5 }}
-                                disabled={thinking || loading}
+                                disabled={thinking || loading || isLimitReached}
                                 style={{ paddingRight: 52, borderRadius: 10, fontSize: 13.5, resize: 'none' }}
                             />
                             <Button
                                 type="primary"
                                 icon={thinking ? <LoadingOutlined /> : <SendOutlined />}
                                 onClick={handleSend}
-                                disabled={!input.trim() || thinking || loading}
+                                disabled={!input.trim() || thinking || loading || isLimitReached}
                                 style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 8, padding: 0 }}
                             />
                         </div>

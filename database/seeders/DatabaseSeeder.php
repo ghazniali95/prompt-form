@@ -15,6 +15,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // PlanSeeder removed — plans table was package-specific (kyon147/laravel-shopify)
+        $this->call(PlanSeeder::class);
     }
 }

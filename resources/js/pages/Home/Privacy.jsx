@@ -35,7 +35,7 @@ export default function Privacy() {
     return (
         <Layout style={{ minHeight: '100vh', background: '#fff' }}>
             <Header style={HEADER_STYLE}>
-                <img src="/images/logo.png" alt="PromptForm" style={{ height: 34 }} />
+                <img src="/images/logo.png" alt="PromptForm" style={{ height: 36, width: 'auto' }} />
             </Header>
 
             <Content>

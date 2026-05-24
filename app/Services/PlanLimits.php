@@ -10,19 +10,19 @@ class PlanLimits
         'free' => [
             'forms'       => 1,
             'submissions' => 50,
-            'ai_tokens'   => 100_000,
+            'ai_tokens'   => 50_000,
             'label'       => 'Free',
         ],
         'starter' => [
             'forms'       => 5,
             'submissions' => 1_000,
-            'ai_tokens'   => 1_000_000,
+            'ai_tokens'   => 200_000,
             'label'       => 'Starter',
         ],
         'growing' => [
             'forms'       => PHP_INT_MAX,
             'submissions' => PHP_INT_MAX,
-            'ai_tokens'   => 10_000_000,
+            'ai_tokens'   => 750_000,
             'label'       => 'Growing',
         ],
     ];

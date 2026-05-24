@@ -36,9 +36,10 @@ class AuthController extends Controller implements HasMiddleware
 
         $request->session()->regenerate();
 
-        return response()->json([
-            'redirect' => route('dashboard'),
-        ]);
+        $user     = Auth::guard('web-users')->user();
+        $redirect = $user->onboarding_completed ? route('dashboard') : route('onboarding');
+
+        return response()->json(['redirect' => $redirect]);
     }
 
     public function register(Request $request)
@@ -59,9 +60,7 @@ class AuthController extends Controller implements HasMiddleware
         Auth::guard('web-users')->login($user);
         $request->session()->regenerate();
 
-        return response()->json([
-            'redirect' => route('dashboard'),
-        ]);
+        return response()->json(['redirect' => route('onboarding')]);
     }
 
     public function logout(Request $request)

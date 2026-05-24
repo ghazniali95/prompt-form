@@ -1,13 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\Forms\FormChatController;
-use App\Http\Controllers\Api\V1\Forms\FormController;
-use App\Http\Controllers\Api\V1\AI\AiGenerationController;
-use App\Http\Controllers\Api\V1\Analytics\StatsController;
-use App\Http\Controllers\Api\V1\Shopify\BillingController;
-use App\Http\Controllers\Shopify\WebhookController;
-use App\Http\Controllers\Api\V1\Public\PublicFormController;
+use App\Http\Controllers\API\V1\Forms\FormChatController;
+use App\Http\Controllers\API\V1\Forms\FormController;
+use App\Http\Controllers\API\V1\Analytics\AnalyticsController;
+use App\Http\Controllers\API\V1\Analytics\StatsController;
+use App\Http\Controllers\API\V1\Billing\BillingController;
+use App\Http\Controllers\API\V1\Integrations\IntegrationsController;
+use App\Http\Controllers\API\V1\Onboarding\OnboardingController;
+use App\Http\Controllers\API\V1\Submissions\SubmissionsController;
+use App\Http\Controllers\Shopify\ShopifyWebhookController;
+use App\Http\Controllers\API\V1\Public\PublicFormController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,21 +25,32 @@ Route::middleware(['api.auth'])->prefix('v1')->group(function () {
     Route::post('forms/{form}/unpublish', [FormController::class, 'unpublish']);
     Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate']);
 
+    // Submissions
+    Route::apiResource('submissions', SubmissionsController::class)->only(['index', 'show', 'destroy']);
+
     // AI chat per form
     Route::get('forms/{form}/conversation', [FormChatController::class, 'messages']);
     Route::post('forms/{form}/chat', [FormChatController::class, 'chat']);
 
-    // Stats
-    Route::get('stats', [StatsController::class, 'index']);
+    // Stats + Analytics
+    Route::get('stats',              [StatsController::class,     'index']);
+    Route::get('analytics/overview', [AnalyticsController::class, 'overview']);
 
-    // AI generation
-    Route::post('ai/generate', [AiGenerationController::class, 'generate']);
-    Route::post('ai/refine', [AiGenerationController::class, 'refine']);
+    // Onboarding
+    Route::post('onboarding/scan',        [OnboardingController::class, 'scan']);
+    Route::post('onboarding/upload-logo', [OnboardingController::class, 'uploadLogo']);
+    Route::post('onboarding/complete',    [OnboardingController::class, 'complete']);
+    Route::post('onboarding/skip',        [OnboardingController::class, 'skip']);
+
+    // Integrations
+    Route::delete('integrations/shopify', [IntegrationsController::class, 'disconnectShopify']);
 
     // Billing
-    Route::get('billing/current', [BillingController::class, 'current']);
+    Route::get('billing/current',   [BillingController::class, 'current']);
+    Route::get('billing/plans',     [BillingController::class, 'plans']);
+    Route::get('billing/invoices',  [BillingController::class, 'invoices']);
     Route::post('billing/subscribe', [BillingController::class, 'subscribe']);
-    Route::post('billing/cancel', [BillingController::class, 'cancel']);
+    Route::post('billing/cancel',    [BillingController::class, 'cancel']);
 });
 
 /*
@@ -44,7 +58,7 @@ Route::middleware(['api.auth'])->prefix('v1')->group(function () {
 | Shopify Webhooks (HMAC-verified, no session auth)
 |--------------------------------------------------------------------------
 */
-Route::post('shopify/webhooks', WebhookController::class);
+Route::post('shopify/webhooks', ShopifyWebhookController::class);
 
 /*
 |--------------------------------------------------------------------------

@@ -13,15 +13,12 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->ulid('ulid')->unique();
             $table->string('title');
-            $table->json('schema')->nullable();
-            $table->json('styles')->nullable();
-            $table->json('steps')->nullable();
-            $table->json('settings')->nullable();
-            $table->json('display')->nullable();
-            $table->json('image')->nullable();
-            $table->json('cookies')->nullable();
-            $table->json('post_submit')->nullable();
+            $table->longText('html_content')->nullable();
+            $table->string('layout_type')->nullable();
+            $table->longText('compiled_content')->nullable();
             $table->boolean('is_published')->default(false);
+            $table->unsignedInteger('views')->default(0);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

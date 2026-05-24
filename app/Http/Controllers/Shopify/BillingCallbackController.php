@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shopify;
 
 use App\Http\Controllers\Controller;
 use App\Models\Integration;
+use App\Models\UserSubscription;
 use App\Services\Shopify\BillingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,31 @@ class BillingCallbackController extends Controller
                 'charge_id' => $chargeId,
             ]);
             return $this->redirectToApp($shop, 'error', $host);
+        }
+
+        // ── Write to user_subscriptions (single source of truth) ─────────────
+
+        $user = $integration->user;
+
+        if ($user) {
+            // Cancel any previous active/incomplete Shopify subscription
+            $user->subscriptions()
+                ->where('provider', 'shopify')
+                ->whereIn('status', ['active', 'incomplete'])
+                ->update(['status' => 'cancelled', 'cancelled_at' => now()]);
+
+            $gid = str_starts_with($chargeId, 'gid://')
+                ? $chargeId
+                : "gid://shopify/AppSubscription/{$chargeId}";
+
+            UserSubscription::create([
+                'user_id'                  => $user->id,
+                'plan_slug'                => $plan,
+                'provider'                 => 'shopify',
+                'provider_subscription_id' => $gid,
+                'status'                   => 'active',
+                'activated_on'             => now(),
+            ]);
         }
 
         return $this->redirectToApp($shop, $plan, $host);

@@ -1,20 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-    Button, Table, Tag, Typography, Row, Col,
-    Card, Dropdown, Empty, Modal, Input, message,
+    Button, Typography, Row, Col, Card, Empty, Modal, Input, message, Spin,
 } from 'antd';
 import {
-    RobotOutlined, EditOutlined, DeleteOutlined,
-    EyeOutlined, MoreOutlined, CopyOutlined, FileTextOutlined,
+    RobotOutlined, FileTextOutlined,
     CheckCircleOutlined, ClockCircleOutlined, BarChartOutlined,
 } from '@ant-design/icons';
 import axios from 'axios';
 import AuthLayout from '@layouts/AuthLayout';
 import AiFormDrawer from '@components/Forms/AiFormDrawer';
+import FormsTable from '@components/Forms/FormsTable';
 
 const { Title, Text } = Typography;
-
-// ─── Stat card ────────────────────────────────────────────────────────────────
 
 function StatCard({ icon, label, value, color }) {
     return (
@@ -37,30 +34,30 @@ function StatCard({ icon, label, value, color }) {
     );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+export default function FormsIndex({ user }) {
+    const [forms, setForms]     = useState([]);
+    const [loading, setLoading] = useState(true);
 
-export default function FormsIndex({ user, forms: serverForms, stats: serverStats }) {
-    const [forms, setForms]             = useState(serverForms ?? []);
-    const stats                         = serverStats ?? { total: 0, published: 0, drafts: 0, submissions: 0 };
-
-    // Name modal
     const [nameModalOpen, setNameModalOpen] = useState(false);
     const [nameInput, setNameInput]         = useState('');
     const [nameLoading, setNameLoading]     = useState(false);
 
-    // Chat drawer
-    const [drawerOpen, setDrawerOpen]   = useState(false);
-    const [activeForm, setActiveForm]   = useState(null);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [activeForm, setActiveForm] = useState(null);
 
-    const openDrawerForNew = () => {
-        setNameInput('');
-        setNameModalOpen(true);
-    };
+    useEffect(() => {
+        axios.get('/api/v1/forms?per_page=100')
+            .then(({ data }) => setForms(data.data ?? []))
+            .catch(() => message.error('Failed to load forms.'))
+            .finally(() => setLoading(false));
+    }, []);
 
-    const openDrawerForForm = (record) => {
-        setActiveForm(record);
-        setDrawerOpen(true);
-    };
+    const stats = useMemo(() => ({
+        total:       forms.length,
+        published:   forms.filter(f => f.status === 'published').length,
+        drafts:      forms.filter(f => f.status === 'draft').length,
+        submissions: forms.reduce((s, f) => s + (f.submissions ?? 0), 0),
+    }), [forms]);
 
     const handleCreateDraft = async () => {
         const title = nameInput.trim();
@@ -69,103 +66,16 @@ export default function FormsIndex({ user, forms: serverForms, stats: serverStat
         try {
             const { data } = await axios.post('/api/v1/forms', { title });
             const created = data.data;
-            setForms(prev => [
-                {
-                    id:          created.id,
-                    ulid:        created.ulid,
-                    title:       created.title,
-                    status:      'draft',
-                    submissions: 0,
-                    views:       0,
-                    updated_at:  new Date().toISOString().slice(0, 10),
-                },
-                ...prev,
-            ]);
+            setForms(prev => [created, ...prev]);
             setNameModalOpen(false);
             setActiveForm(created);
             setDrawerOpen(true);
         } catch (err) {
-            const msg = err.response?.data?.message ?? 'Failed to create form.';
-            message.error(msg);
+            message.error(err.response?.data?.message ?? 'Failed to create form.');
         } finally {
             setNameLoading(false);
         }
     };
-
-    const handleDrawerClose = () => {
-        setDrawerOpen(false);
-        setActiveForm(null);
-    };
-
-    const handleFormUpdated = (updated) => {
-        setForms(prev => prev.map(f => f.id === updated.id ? { ...f, ...updated } : f));
-    };
-
-    const rowActions = (record) => [
-        { key: 'edit',    icon: <EditOutlined />,   label: 'Edit with AI',     onClick: () => openDrawerForForm(record) },
-        { key: 'preview', icon: <EyeOutlined />,    label: 'Preview' },
-        { key: 'copy',    icon: <CopyOutlined />,   label: 'Copy embed code' },
-        { type: 'divider' },
-        { key: 'delete',  icon: <DeleteOutlined />, label: 'Delete', danger: true },
-    ];
-
-    const columns = [
-        {
-            title: 'Form',
-            dataIndex: 'title',
-            key: 'title',
-            render: (title, record) => (
-                <div>
-                    <Text strong style={{ fontSize: 14 }}>{title}</Text>
-                    <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 2 }}>
-                        ID: {record.ulid?.slice(-8) ?? record.id}
-                    </Text>
-                </div>
-            ),
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            width: 130,
-            render: s => s === 'published'
-                ? <Tag color="success" icon={<CheckCircleOutlined />}>Published</Tag>
-                : <Tag color="default" icon={<ClockCircleOutlined />}>Draft</Tag>,
-        },
-        {
-            title: 'Views',
-            dataIndex: 'views',
-            key: 'views',
-            width: 100,
-            align: 'right',
-            render: v => <Text>{(v ?? 0).toLocaleString()}</Text>,
-        },
-        {
-            title: 'Submissions',
-            dataIndex: 'submissions',
-            key: 'submissions',
-            width: 130,
-            align: 'right',
-            render: v => <Text strong style={{ color: v > 0 ? '#f97316' : '#bbb' }}>{(v ?? 0).toLocaleString()}</Text>,
-        },
-        {
-            title: 'Last Updated',
-            dataIndex: 'updated_at',
-            key: 'updated_at',
-            width: 140,
-            render: d => <Text type="secondary" style={{ fontSize: 13 }}>{d}</Text>,
-        },
-        {
-            title: '',
-            key: 'actions',
-            width: 48,
-            render: (_, record) => (
-                <Dropdown menu={{ items: rowActions(record) }} trigger={['click']} placement="bottomRight">
-                    <Button type="text" icon={<MoreOutlined />} style={{ color: '#aaa' }} />
-                </Dropdown>
-            ),
-        },
-    ];
 
     return (
         <AuthLayout user={user}>
@@ -184,7 +94,7 @@ export default function FormsIndex({ user, forms: serverForms, stats: serverStat
                             type="primary"
                             size="large"
                             icon={<RobotOutlined />}
-                            onClick={openDrawerForNew}
+                            onClick={() => { setNameInput(''); setNameModalOpen(true); }}
                             style={{ fontWeight: 700 }}
                         >
                             Create with AI
@@ -202,63 +112,52 @@ export default function FormsIndex({ user, forms: serverForms, stats: serverStat
 
                 {/* Table */}
                 <Card style={{ borderRadius: 12, border: '1px solid #f0f0f0' }} styles={{ body: { padding: 0 } }}>
-                    <Table
-                        dataSource={forms}
-                        columns={columns}
-                        rowKey="id"
-                        pagination={forms.length > 10 ? { pageSize: 10 } : false}
-                        locale={{
-                            emptyText: (
-                                <Empty
-                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                    description={
-                                        <span>
-                                            No forms yet.{' '}
-                                            <a onClick={openDrawerForNew} style={{ color: '#f97316', fontWeight: 600 }}>
-                                                Create your first form with AI
-                                            </a>
-                                        </span>
-                                    }
-                                />
-                            ),
-                        }}
-                        style={{ borderRadius: 12, overflow: 'hidden' }}
-                    />
+                    <Spin spinning={loading}>
+                        <FormsTable
+                            forms={forms}
+                            loading={false}
+                            pagination={forms.length > 10 ? { pageSize: 10 } : false}
+                            onEditWithAI={form => { setActiveForm(form); setDrawerOpen(true); }}
+                            onFormUpdated={updated => setForms(prev => prev.map(f => f.id === updated.id ? { ...f, ...updated } : f))}
+                            onFormDeleted={id => setForms(prev => prev.filter(f => f.id !== id))}
+                            emptyText={
+                                loading ? <div style={{ padding: 40 }} /> : (
+                                    <Empty
+                                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                        description={
+                                            <span>
+                                                No forms yet.{' '}
+                                                <a onClick={() => { setNameInput(''); setNameModalOpen(true); }} style={{ color: '#f97316', fontWeight: 600 }}>
+                                                    Create your first form with AI
+                                                </a>
+                                            </span>
+                                        }
+                                    />
+                                )
+                            }
+                        />
+                    </Spin>
                 </Card>
             </div>
 
-            {/* ── Name modal ── */}
+            {/* Name modal */}
             <Modal
                 open={nameModalOpen}
                 onCancel={() => setNameModalOpen(false)}
                 title={
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{
-                            width: 36, height: 36, borderRadius: 10,
-                            background: '#f974161a', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f974161a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <RobotOutlined style={{ fontSize: 18, color: '#f97316' }} />
                         </div>
                         <div>
                             <div style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2 }}>Name your form</div>
-                            <div style={{ fontWeight: 400, fontSize: 12, color: '#999', marginTop: 2 }}>
-                                You can always rename it later
-                            </div>
+                            <div style={{ fontWeight: 400, fontSize: 12, color: '#999', marginTop: 2 }}>You can always rename it later</div>
                         </div>
                     </div>
                 }
                 footer={[
-                    <Button key="cancel" onClick={() => setNameModalOpen(false)} disabled={nameLoading}>
-                        Cancel
-                    </Button>,
-                    <Button
-                        key="create"
-                        type="primary"
-                        loading={nameLoading}
-                        disabled={!nameInput.trim()}
-                        onClick={handleCreateDraft}
-                        style={{ fontWeight: 700 }}
-                    >
+                    <Button key="cancel" onClick={() => setNameModalOpen(false)} disabled={nameLoading}>Cancel</Button>,
+                    <Button key="create" type="primary" loading={nameLoading} disabled={!nameInput.trim()} onClick={handleCreateDraft} style={{ fontWeight: 700 }}>
                         Create Draft
                     </Button>,
                 ]}
@@ -282,12 +181,12 @@ export default function FormsIndex({ user, forms: serverForms, stats: serverStat
                 </div>
             </Modal>
 
-            {/* ── Chat drawer ── */}
+            {/* AI drawer */}
             <AiFormDrawer
                 open={drawerOpen}
                 form={activeForm}
-                onClose={handleDrawerClose}
-                onFormUpdated={handleFormUpdated}
+                onClose={() => { setDrawerOpen(false); setActiveForm(null); }}
+                onFormUpdated={updated => setForms(prev => prev.map(f => f.id === updated.id ? { ...f, ...updated } : f))}
             />
         </AuthLayout>
     );

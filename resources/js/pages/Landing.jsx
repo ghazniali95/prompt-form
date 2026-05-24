@@ -48,7 +48,7 @@ export default function Landing() {
                 height: 64,
                 boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
             }}>
-                <img src="/images/logo.png" alt="PromptForm" style={{ height: 34 }} />
+                <img src="/images/logo.png" alt="PromptForm" style={{ height: 36, width: 'auto' }} />
                 <Space size={32}>
                     <Link href="/privacy-policy" style={{ color: '#666', fontSize: 14, fontWeight: 500 }}>Privacy Policy</Link>
                     <Link href="/terms" style={{ color: '#666', fontSize: 14, fontWeight: 500 }}>Terms of Service</Link>

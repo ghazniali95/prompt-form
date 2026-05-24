@@ -11,10 +11,11 @@ return new class extends Migration
         Schema::create('ai_conversations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-
-            // Polymorphic: Form, Survey, etc.
-            $table->morphs('conversable'); // adds conversable_type + conversable_id + index
-
+            $table->unsignedInteger('total_tokens')->default(0);
+            $table->unsignedSmallInteger('message_count')->default(0);
+            $table->timestamp('last_compressed_at')->nullable();
+            $table->text('compression_summary')->nullable();
+            $table->morphs('conversable');
             $table->timestamps();
         });
     }

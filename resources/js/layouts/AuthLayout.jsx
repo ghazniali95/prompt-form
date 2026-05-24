@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { Layout, Menu, Typography, Divider, Progress, Avatar, Dropdown, Button, theme, message } from 'antd';
 import {
-    HomeOutlined, FileTextOutlined, AppstoreOutlined, BarChartOutlined,
+    HomeOutlined, FileTextOutlined, BarChartOutlined,
     ApiOutlined, CreditCardOutlined, QuestionCircleOutlined,
     UserOutlined, LogoutOutlined, UpOutlined, DownOutlined, CrownOutlined, PlusOutlined,
-    InboxOutlined,
+    InboxOutlined, ThunderboltOutlined,
 } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -17,11 +17,10 @@ const NAV_ITEMS = [
     { key: '/dashboard',              icon: <HomeOutlined />,           label: 'Dashboard' },
     { key: '/forms',                  icon: <FileTextOutlined />,       label: 'Forms' },
     { key: '/submissions',            icon: <InboxOutlined />,          label: 'Submissions' },
-    { key: '/dashboard/templates',    icon: <AppstoreOutlined />,       label: 'Templates' },
-    { key: '/dashboard/analytics',    icon: <BarChartOutlined />,       label: 'Analytics' },
-    { key: '/dashboard/integrations', icon: <ApiOutlined />,            label: 'Integrations' },
-    { key: '/dashboard/pricing',      icon: <CreditCardOutlined />,     label: 'Pricing' },
-    { key: '/dashboard/support',      icon: <QuestionCircleOutlined />, label: 'Support' },
+    { key: '/analytics',    icon: <BarChartOutlined />,       label: 'Analytics' },
+    { key: '/integrations', icon: <ApiOutlined />,            label: 'Integrations' },
+    { key: '/pricing',      icon: <CreditCardOutlined />,     label: 'Pricing' },
+    { key: '/support',      icon: <QuestionCircleOutlined />, label: 'Support' },
 ];
 
 export default function AuthLayout({ user, children }) {
@@ -49,17 +48,20 @@ export default function AuthLayout({ user, children }) {
         }
     };
 
-    const aiUsed    = user?.ai_used    ?? 0;
-    const aiLimit   = user?.ai_limit   ?? 10;
-    const aiPercent = aiLimit > 0 ? Math.round((aiUsed / aiLimit) * 100) : 0;
-    const initials  = user?.name?.[0]?.toUpperCase() ?? '?';
-    const plan      = user?.plan ?? 'Free';
+    const aiUsed       = user?.ai_used  ?? 0;
+    const aiLimit      = user?.ai_limit ?? 10;
+    const aiPercent    = aiLimit > 0 ? Math.round((aiUsed / aiLimit) * 100) : 0;
+    const limitReached = aiPercent >= 100;
+    const aiStroke     = aiPercent >= 90 ? '#ef4444' : aiPercent >= 70 ? '#f97316' : '#6366f1';
+    const aiStatus     = limitReached ? 'Limit reached' : aiPercent >= 90 ? 'Almost full' : `${aiPercent}% used this month`;
+    const initials     = user?.name?.[0]?.toUpperCase() ?? '?';
+    const plan         = user?.plan ?? 'Free';
 
     const userMenuItems = [
         {
             key: 'profile',
             icon: <UserOutlined />,
-            label: <span onClick={() => router.visit('/dashboard/profile')}>Profile</span>,
+            label: <span onClick={() => router.visit('/web/profile')}>Profile</span>,
         },
         { type: 'divider' },
         {
@@ -87,8 +89,8 @@ export default function AuthLayout({ user, children }) {
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 
                     {/* Logo */}
-                    <div style={{ padding: '32px 24px 20px' }}>
-                        <img src="/images/logo.png" alt="PromptForm" style={{ height: 28, width: 'auto' }} />
+                    <div style={{ padding: '16px 16px 20px', display: 'flex', justifyContent: 'center' }}>
+                        <img src="/images/logo.png" alt="PromptForm" style={{ height: 32, width: 'auto', maxWidth: '100%' }} />
                     </div>
 
                     {/* Create Form */}
@@ -122,18 +124,34 @@ export default function AuthLayout({ user, children }) {
                     />
 
                     {/* AI usage */}
-                    <div style={{ padding: '0 20px 12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                            <Text type="secondary" style={{ fontSize: 11, fontWeight: 600 }}>AI Generations</Text>
-                            <Text type="secondary" style={{ fontSize: 11 }}>{aiUsed} / {aiLimit}</Text>
+                    <div style={{ padding: '0 14px 12px' }}>
+                        <div style={{ borderRadius: 10, border: `1px solid ${token.colorBorderSecondary}`, padding: '12px 14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                                <div style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <ThunderboltOutlined style={{ fontSize: 15, color: '#6366f1' }} />
+                                </div>
+                                <Text type="secondary" style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    AI Usage
+                                </Text>
+                            </div>
+                            <Progress
+                                percent={aiPercent}
+                                size="small"
+                                showInfo={false}
+                                strokeColor={aiStroke}
+                                trailColor={token.colorBorderSecondary}
+                                strokeWidth={7}
+                                style={{ marginBottom: 6 }}
+                            />
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Text type="secondary" style={{ fontSize: 11 }}>{aiStatus}</Text>
+                                {limitReached && (
+                                    <a onClick={() => router.visit('/pricing')} style={{ fontSize: 11, color: '#f97316', fontWeight: 600, cursor: 'pointer' }}>
+                                        Upgrade
+                                    </a>
+                                )}
+                            </div>
                         </div>
-                        <Progress
-                            percent={aiPercent}
-                            size="small"
-                            showInfo={false}
-                            strokeColor={aiPercent >= 90 ? '#f5222d' : aiPercent >= 70 ? '#faad14' : '#f97316'}
-                            trailColor={token.colorBorderSecondary}
-                        />
                     </div>
 
                     {/* Upgrade button */}
@@ -143,7 +161,7 @@ export default function AuthLayout({ user, children }) {
                                 type="primary"
                                 icon={<CrownOutlined />}
                                 block
-                                onClick={() => router.visit('/dashboard/pricing')}
+                                onClick={() => router.visit('/pricing')}
                                 style={{ fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase' }}
                             >
                                 Upgrade Plan

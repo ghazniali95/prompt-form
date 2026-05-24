@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Ai\Agents\HTMLFormBuilderAgent;
+use App\AI\Agents\HTMLFormBuilderAgent;
 use App\Models\AiGeneration;
 use App\Models\AiUsageLog;
 use App\Models\Form;
@@ -34,7 +34,14 @@ class AIFormService
         try {
             $fullPrompt = $this->buildPrompt($prompt, $form->ulid);
 
-            $response = HTMLFormBuilderAgent::make()->withMessages($history)->prompt($fullPrompt);
+            $agent = HTMLFormBuilderAgent::make()->withMessages($history);
+
+            $theme = $this->resolveTheme($user);
+            if ($theme) {
+                $agent->withTheme($theme);
+            }
+
+            $response = $agent->prompt($fullPrompt);
 
             $parsed = json_decode($response->text, true);
 
@@ -117,7 +124,15 @@ class AIFormService
 
         try {
             $fullPrompt = $this->buildPrompt($prompt, $formUlid);
-            $response   = HTMLFormBuilderAgent::make()->prompt($fullPrompt);
+
+            $agent = HTMLFormBuilderAgent::make();
+
+            $theme = $this->resolveTheme($user);
+            if ($theme) {
+                $agent->withTheme($theme);
+            }
+
+            $response = $agent->prompt($fullPrompt);
 
             $parsed = json_decode($response->text, true);
 
@@ -147,5 +162,24 @@ class AIFormService
             $submitUrl ? "SUBMIT_URL: {$submitUrl}" : '',
             $userPrompt,
         ]));
+    }
+
+    private function resolveTheme(User $user): ?array
+    {
+        $theme = $user->theme;
+
+        if (! $theme) {
+            return null;
+        }
+
+        return array_filter([
+            'company_name'    => $theme->company_name,
+            'primary_color'   => $theme->primary_color,
+            'secondary_color' => $theme->secondary_color,
+            'accent_color'    => $theme->accent_color,
+            'font_family'     => $theme->font_family,
+            'logo_url'        => $theme->logo_url,
+            'description'     => $theme->description,
+        ]);
     }
 }

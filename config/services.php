@@ -35,6 +35,16 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'key'            => env('STRIPE_KEY'),
+        'secret'         => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'plans' => [
+            'starter' => env('STRIPE_PRICE_STARTER'),
+            'growing' => env('STRIPE_PRICE_GROWING'),
+        ],
+    ],
+
     'shopify' => [
         'client_id'     => env('SHOPIFY_API_KEY', ''),
         'client_secret' => env('SHOPIFY_API_SECRET', ''),

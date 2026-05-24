@@ -11,41 +11,48 @@ class PlanSeeder extends Seeder
     {
         $plans = [
             [
-                'name'           => 'Free',
-                'type'           => 'RECURRING',
-                'price'          => 0.00,
-                'form_limit'     => 1,
-                'response_limit' => 100,
-                'is_free'        => true,
-                'trial_days'     => 0,
-                'test'           => false,
+                'name'              => 'Free',
+                'slug'              => 'free',
+                'price'             => 0.00,
+                'stripe_price_id'   => null,
+                'shopify_plan_name' => null,
+                'shopify_price'     => null,
+                'form_limit'        => 1,
+                'response_limit'    => 50,
+                'ai_token_limit'    => 50_000,
+                'is_free'           => true,
+                'trial_days'        => 0,
             ],
             [
-                'name'           => 'Basic',
-                'type'           => 'RECURRING',
-                'price'          => 9.99,
-                'stripe_price_id'=> null, // set when Stripe product is created
-                'form_limit'     => 5,
-                'response_limit' => 1000,
-                'is_free'        => false,
-                'trial_days'     => 7,
-                'test'           => false,
+                'name'              => 'Starter',
+                'slug'              => 'starter',
+                'price'             => 9.00,
+                'stripe_price_id'   => config('services.stripe.plans.starter'),
+                'shopify_plan_name' => 'Starter Plan',
+                'shopify_price'     => 9.00,
+                'form_limit'        => 5,
+                'response_limit'    => 1000,
+                'ai_token_limit'    => 200_000,
+                'is_free'           => false,
+                'trial_days'        => 0,
             ],
             [
-                'name'           => 'Pro',
-                'type'           => 'RECURRING',
-                'price'          => 29.99,
-                'stripe_price_id'=> null,
-                'form_limit'     => 0,    // unlimited
-                'response_limit' => 0,    // unlimited
-                'is_free'        => false,
-                'trial_days'     => 7,
-                'test'           => false,
+                'name'              => 'Growing',
+                'slug'              => 'growing',
+                'price'             => 24.00,
+                'stripe_price_id'   => config('services.stripe.plans.growing'),
+                'shopify_plan_name' => 'Growing Plan',
+                'shopify_price'     => 24.00,
+                'form_limit'        => PHP_INT_MAX,
+                'response_limit'    => PHP_INT_MAX,
+                'ai_token_limit'    => 750_000,
+                'is_free'           => false,
+                'trial_days'        => 0,
             ],
         ];
 
-        foreach ($plans as $plan) {
-            Plan::firstOrCreate(['name' => $plan['name']], $plan);
+        foreach ($plans as $data) {
+            Plan::updateOrCreate(['slug' => $data['slug']], $data);
         }
     }
 }
