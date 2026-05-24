@@ -172,7 +172,7 @@ export default function PricingPage({ onBack }) {
         setLoading(`subscribe-${plan.id}`);
         setError(null);
         try {
-            const { data } = await api.post('/api/v1/billing/subscribe', { plan: plan.id });
+            const { data } = await api.post('/api/v1/billing/subscribe', { plan_slug: plan.id });
             // App Bridge v4 patches window.open to handle cross-origin parent-frame
             // navigation correctly. window.top.location.href is blocked by browsers
             // for cross-origin iframes; open(url, '_top') is the supported way.
