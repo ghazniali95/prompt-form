@@ -106,10 +106,9 @@ function AiUsageCard({ pct, used, limit, limitReached, onUpgrade }) {
                 </div>
                 <InlineStack align="space-between">
                     <Text variant="bodySm" tone={tone}>{label}</Text>
-                    {limitReached
-                        ? <Button variant="plain" size="slim" onClick={onUpgrade}>Upgrade</Button>
-                        : <Text variant="bodySm" tone="subdued">{used?.toLocaleString()} / {limit?.toLocaleString()} tokens</Text>
-                    }
+                    {limitReached && (
+                        <Button variant="plain" size="slim" onClick={onUpgrade}>Upgrade</Button>
+                    )}
                 </InlineStack>
             </BlockStack>
         </Card>
