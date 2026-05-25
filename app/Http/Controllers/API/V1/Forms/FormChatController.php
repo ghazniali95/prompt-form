@@ -9,6 +9,7 @@ use App\Services\PlanLimits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class FormChatController extends Controller
 {
@@ -94,7 +95,13 @@ class FormChatController extends Controller
                     'meta'         => $meta,
                 ],
             ]);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            Log::error('AI chat failed', [
+                'form_id' => $id,
+                'user_id' => Auth::id(),
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
             return response()->json(['error' => 'AI generation failed. Please try again.'], 500);
         }
     }
