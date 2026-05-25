@@ -19,6 +19,10 @@ class JsxCompilerService
      */
     public function compile(string $jsxCode): ?string
     {
+        if (! function_exists('proc_open')) {
+            return null;
+        }
+
         if (! is_executable($this->esbuild)) {
             Log::warning('JsxCompilerService: esbuild not found at ' . $this->esbuild);
             return null;
