@@ -306,10 +306,6 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
                                 content: 'Refine with AI',
                                 onAction: () => { setActivePopover(null); onEdit(form.id); },
                             },
-                            {
-                                content: 'Duplicate Form',
-                                onAction: () => handleDuplicate(form),
-                            },
                         ]}
                     />
                 </Popover>
