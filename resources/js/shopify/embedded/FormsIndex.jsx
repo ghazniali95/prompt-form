@@ -92,6 +92,30 @@ import { useAuthenticatedFetch } from './hooks/useAuthenticatedFetch';
 import FormPreview from './components/FormPreview';
 import SubmissionsDrawer from './components/SubmissionsDrawer';
 
+function AiUsageCard({ pct, used, limit, limitReached, onUpgrade }) {
+    const barColor = limitReached ? '#B91C1C' : pct >= 80 ? '#B54708' : '#1A7F5A';
+    const tone     = limitReached ? 'critical' : pct >= 80 ? 'caution' : 'success';
+    const label    = limitReached ? 'Limit reached' : `${pct}% used this month`;
+
+    return (
+        <Card>
+            <BlockStack gap="200">
+                <Text variant="bodySm" tone="subdued">AI Usage</Text>
+                <div style={{ height: 6, borderRadius: 3, background: '#e4e5e7', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 3, background: barColor, transition: 'width 0.4s ease' }} />
+                </div>
+                <InlineStack align="space-between">
+                    <Text variant="bodySm" tone={tone}>{label}</Text>
+                    {limitReached
+                        ? <Button variant="plain" size="slim" onClick={onUpgrade}>Upgrade</Button>
+                        : <Text variant="bodySm" tone="subdued">{used?.toLocaleString()} / {limit?.toLocaleString()} tokens</Text>
+                    }
+                </InlineStack>
+            </BlockStack>
+        </Card>
+    );
+}
+
 function StatCard({ label, value, sublabel, tone }) {
     const valueColor = tone === 'warning' ? '#B54708' : tone === 'success' ? '#1A7F5A' : '#202223';
     return (
@@ -342,7 +366,7 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
                 <ThemeOnboardingCard shopDomain={window.__shopDomain} />
 
                 {/* Analytics counters */}
-                <InlineGrid columns={3} gap="400">
+                <InlineGrid columns={{ xs: 2, md: 4 }} gap="400">
                     <StatCard
                         label="Total Forms"
                         value={stats?.total_forms}
@@ -358,6 +382,13 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
                         value={submissionsLeft}
                         sublabel={planLimit ? `of ${planLimit} free this month` : 'this month'}
                         tone={submissionsTone}
+                    />
+                    <AiUsageCard
+                        pct={stats?.ai_usage_pct ?? 0}
+                        used={stats?.ai_tokens_used ?? 0}
+                        limit={stats?.ai_tokens_limit ?? 0}
+                        limitReached={stats?.ai_limit_reached ?? false}
+                        onUpgrade={onNavigatePricing}
                     />
                 </InlineGrid>
 
