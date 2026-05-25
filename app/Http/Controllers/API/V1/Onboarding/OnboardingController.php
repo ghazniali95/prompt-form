@@ -80,4 +80,13 @@ class OnboardingController extends Controller
 
         return response()->json(['redirect' => route('dashboard')]);
     }
+
+    public function status(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => [
+                'needs_onboarding' => ! $request->user()->onboarding_completed,
+            ],
+        ]);
+    }
 }

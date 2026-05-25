@@ -37,6 +37,7 @@ Route::middleware(['api.auth'])->prefix('v1')->group(function () {
     Route::get('analytics/overview', [AnalyticsController::class, 'overview']);
 
     // Onboarding
+    Route::get('onboarding/status',       [OnboardingController::class, 'status']);
     Route::post('onboarding/scan',        [OnboardingController::class, 'scan']);
     Route::post('onboarding/upload-logo', [OnboardingController::class, 'uploadLogo']);
     Route::post('onboarding/complete',    [OnboardingController::class, 'complete']);
