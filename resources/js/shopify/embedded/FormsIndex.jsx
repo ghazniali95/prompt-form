@@ -272,7 +272,7 @@ export default function FormsIndex({ onCreateNew, onEdit, onNavigatePricing }) {
                     onClick={() => setSubmissionsForm(form)}
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontWeight: 700, color: '#202223', textDecoration: 'underline' }}
                 >
-                    {form.responses_count ?? 0}
+                    {form.submissions ?? 0}
                 </button>
             </IndexTable.Cell>
             <IndexTable.Cell>

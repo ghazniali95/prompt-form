@@ -156,7 +156,7 @@ export default function SubmissionsDrawer({ form, api }) {
         if (!form?.id) return;
         setLoading(true);
         setData(null);
-        api.get(`/api/shopify/forms/${form.id}/responses`)
+        api.get(`/api/v1/forms/${form.id}/responses`)
             .then(({ data: res }) => setData(res.data))
             .catch(() => {})
             .finally(() => setLoading(false));
@@ -172,7 +172,14 @@ export default function SubmissionsDrawer({ form, api }) {
 
     if (!data) return null;
 
-    const fields = form?.schema?.fields || [];
+    const fields = (() => {
+        const keys = new Set();
+        data.responses.forEach((r) => Object.keys(r.data || {}).forEach((k) => keys.add(k)));
+        return Array.from(keys).map((k) => ({
+            id: k,
+            label: k.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        }));
+    })();
     const hasAnyData = data.graph.some((d) => d.count > 0);
 
     return (
