@@ -17,7 +17,7 @@ use App\Http\Controllers\API\V1\Public\PublicFormController;
 | Authenticated API — unified auth (Shopify JWT / web session / API key)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['api.auth'])->prefix('v1')->group(function () {
+Route::middleware(['api.auth'])->prefix('v1')->name('api.v1.')->group(function () {
     // Forms
     Route::apiResource('forms', FormController::class);
     Route::get('forms/{form}/responses', [FormController::class, 'responses']);
