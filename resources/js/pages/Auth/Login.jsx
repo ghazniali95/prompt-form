@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Input, Button, Checkbox, Divider, Typography, Alert } from 'antd';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
+import { getRecaptchaToken } from '../../lib/recaptcha';
 
 const { Title, Text } = Typography;
 
@@ -245,13 +246,16 @@ export default function Login() {
     const [error, setError]       = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
 
+    const { recaptchaSiteKey } = usePage().props;
+
     const submit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
         setFieldErrors({});
         try {
-            const { data } = await axios.post('/auth/login', { email, password, remember });
+            const recaptcha_token = await getRecaptchaToken('login', recaptchaSiteKey);
+            const { data } = await axios.post('/auth/login', { email, password, remember, recaptcha_token });
             router.visit(data.redirect);
         } catch (err) {
             if (err.response?.status === 422) {

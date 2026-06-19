@@ -12,6 +12,8 @@ class HandleInertiaRequests extends Middleware
     {
         $shared = parent::share($request);
 
+        $shared['recaptchaSiteKey'] = config('services.recaptcha.site_key');
+
         $user = $request->user('web-users');
         if (! $user) {
             return $shared;

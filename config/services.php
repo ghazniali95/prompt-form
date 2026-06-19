@@ -45,6 +45,12 @@ return [
         ],
     ],
 
+    'recaptcha' => [
+        'site_key'  => env('RECAPTCHA_SITE_KEY'),
+        'secret'    => env('RECAPTCHA_SECRET_KEY'),
+        'threshold' => env('RECAPTCHA_THRESHOLD', 0.5),
+    ],
+
     'shopify' => [
         'client_id'     => env('SHOPIFY_API_KEY', ''),
         'client_secret' => env('SHOPIFY_API_SECRET', ''),

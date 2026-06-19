@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Input, Button, Typography, Alert } from 'antd';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
+import { getRecaptchaToken } from '../../lib/recaptcha';
 
 const { Title, Text } = Typography;
 
@@ -179,6 +180,8 @@ export default function Register() {
     const [error, setError]     = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
 
+    const { recaptchaSiteKey } = usePage().props;
+
     const set = (key) => (e) => setFields(f => ({ ...f, [key]: e.target.value }));
 
     const submit = async (e) => {
@@ -187,7 +190,8 @@ export default function Register() {
         setError(null);
         setFieldErrors({});
         try {
-            const { data } = await axios.post('/auth/register', fields);
+            const recaptcha_token = await getRecaptchaToken('register', recaptchaSiteKey);
+            const { data } = await axios.post('/auth/register', { ...fields, recaptcha_token });
             router.visit(data.redirect);
         } catch (err) {
             if (err.response?.status === 422) {

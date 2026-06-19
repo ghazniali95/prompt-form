@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\RecaptchaService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -21,12 +22,18 @@ class AuthController extends Controller implements HasMiddleware
         ];
     }
 
-    public function login(Request $request)
+    public function login(Request $request, RecaptchaService $recaptcha)
     {
         $credentials = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
+
+        if (! $recaptcha->verify($request->input('recaptcha_token'), 'login')) {
+            return response()->json([
+                'message' => 'Captcha verification failed. Please try again.',
+            ], 422);
+        }
 
         if (!Auth::guard('web-users')->attempt($credentials, $request->boolean('remember'))) {
             return response()->json([
@@ -42,13 +49,19 @@ class AuthController extends Controller implements HasMiddleware
         return response()->json(['redirect' => $redirect]);
     }
 
-    public function register(Request $request)
+    public function register(Request $request, RecaptchaService $recaptcha)
     {
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
+
+        if (! $recaptcha->verify($request->input('recaptcha_token'), 'register')) {
+            return response()->json([
+                'message' => 'Captcha verification failed. Please try again.',
+            ], 422);
+        }
 
         $user = User::create([
             'name'       => $data['name'],
