@@ -8,7 +8,7 @@ import react from '@vitejs/plugin-react';
  *
  * Usage on any website:
  *   <!-- Once in <head> -->
- *   <script src="https://promptform.mesh99.com/embed.js"></script>
+ *   <script src="https://app.aipromptform.com/embed.js"></script>
  *
  *   <!-- Anywhere in <body> -->
  *   <div data-pf-form="YOUR_FORM_ULID"></div>

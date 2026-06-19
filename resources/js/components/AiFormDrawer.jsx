@@ -211,7 +211,7 @@ export default function AiFormDrawer({ open, onClose }) {
     };
 
     const copyEmbedCode = () => {
-        navigator.clipboard.writeText(`<script src="https://promptform.mesh99.com/widget.js" data-form-id="FORM_ULID"><\/script>`);
+        navigator.clipboard.writeText(`<script src="https://app.aipromptform.com/widget.js" data-form-id="FORM_ULID"><\/script>`);
     };
 
     return (
