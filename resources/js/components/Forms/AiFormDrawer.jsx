@@ -237,7 +237,7 @@ export default function AiFormDrawer({ open, form, onClose, onFormUpdated }) {
     };
 
     const copyEmbedCode = () => {
-        const code = `<script src="https://promptform.mesh99.com/widget.js" data-form-id="${form?.ulid ?? ''}"><\/script>`;
+        const code = `<script src="https://app.aipromptform.com/widget.js" data-form-id="${form?.ulid ?? ''}"><\/script>`;
         navigator.clipboard.writeText(code);
         message.success('Embed code copied!');
     };
