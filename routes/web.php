@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\GuestController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Web\AnalyticsController;
+use App\Http\Controllers\Web\EmbedController;
 use App\Http\Controllers\Web\IntegrationsController;
 use App\Http\Controllers\Web\OnboardingController;
 use App\Http\Controllers\Web\PricingController;
@@ -25,17 +26,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 // Embed script — served with CORS + long-term cache headers
-Route::get('/embed.js', function () {
-    $path = public_path('embed.js');
-    if (! file_exists($path)) {
-        abort(404);
-    }
-    return response()->file($path, [
-        'Content-Type'  => 'application/javascript',
-        'Cache-Control' => 'public, max-age=86400',
-        'Access-Control-Allow-Origin' => '*',
-    ]);
-});
+Route::get('/embed.js', EmbedController::class)->name('embed.js');
 
 Route::get('/',               [HomeController::class, 'index'])->name('welcome');
 Route::get('/privacy-policy', [HomeController::class, 'privacy'])->name('privacy');
@@ -52,6 +43,10 @@ Route::get('/register', [GuestController::class, 'register'])->name('register');
 Route::post('/auth/login',    [AuthController::class, 'login'])->name('auth.login');
 Route::post('/auth/register', [AuthController::class, 'register'])->name('auth.register');
 Route::post('/auth/logout',   [AuthController::class, 'logout'])->name('auth.logout');
+
+// Shopify OAuth
+Route::get('/auth/shopify/begin',    [ShopifyAuthController::class, 'begin'])->name('shopify.auth.begin');
+Route::get('/auth/shopify/callback', [ShopifyAuthController::class, 'callback'])->name('shopify.auth.callback');
 
 /*
 |--------------------------------------------------------------------------
@@ -74,12 +69,9 @@ Route::get('/logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
 /*
 |--------------------------------------------------------------------------
-| Shopify OAuth + Billing
+| Shopify Billing
 |--------------------------------------------------------------------------
 */
-Route::get('/auth/shopify/begin',    [ShopifyAuthController::class, 'begin'])->name('shopify.auth.begin');
-Route::get('/auth/shopify/callback', [ShopifyAuthController::class, 'callback'])->name('shopify.auth.callback');
-
 // Shopify billing callback — no App Bridge session, top-level redirect
 Route::get('/auth/shopify/billing/callback', BillingCallbackController::class)->name('billing.callback');
 
