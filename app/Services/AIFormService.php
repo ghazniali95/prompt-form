@@ -7,6 +7,9 @@ use App\Models\AiGeneration;
 use App\Models\AiUsageLog;
 use App\Models\Form;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Laravel\Ai\Files\Image;
 
 class AIFormService
 {
@@ -26,9 +29,9 @@ class AIFormService
         $generation = AiGeneration::create([
             'user_id' => $user->id,
             'form_id' => $form->id,
-            'prompt'  => $prompt,
-            'model'   => 'claude-sonnet-4-6',
-            'status'  => 'pending',
+            'prompt' => $prompt,
+            'model' => 'claude-sonnet-4-6',
+            'status' => 'pending',
         ]);
 
         try {
@@ -36,18 +39,14 @@ class AIFormService
 
             $agent = HTMLFormBuilderAgent::make()->withMessages($history);
 
-            $theme = $this->resolveTheme($user);
-            if ($theme) {
-                $agent->withTheme($theme);
+            $attachments = $this->brandAttachments($user);
+            if ($attachments) {
+                $agent->withBrandScreenshot();
             }
 
-            $response = $agent->prompt($fullPrompt);
+            $response = $agent->prompt($fullPrompt, $attachments);
 
-            $parsed = json_decode($response->text, true);
-
-            if (! $parsed || ! isset($parsed['componentCode'])) {
-                throw new \RuntimeException('AI returned an invalid JSON structure.');
-            }
+            $parsed = $this->decodeComponentJson($response->text);
 
             $totalTokens = ($response->usage->promptTokens ?? 0)
                 + ($response->usage->completionTokens ?? 0);
@@ -55,28 +54,28 @@ class AIFormService
             $this->convService->appendTurn($conv, $prompt, $response->text, $totalTokens);
 
             AiUsageLog::create([
-                'user_id'           => $user->id,
-                'form_id'           => $form->id,
-                'conversation_id'   => $conv->id,
-                'provider'          => 'anthropic',
-                'model'             => 'claude-sonnet-4-6',
-                'purpose'           => 'form_builder',
-                'prompt_tokens'     => $response->usage->promptTokens ?? 0,
+                'user_id' => $user->id,
+                'form_id' => $form->id,
+                'conversation_id' => $conv->id,
+                'provider' => 'anthropic',
+                'model' => 'claude-sonnet-4-6',
+                'purpose' => 'form_builder',
+                'prompt_tokens' => $response->usage->promptTokens ?? 0,
                 'completion_tokens' => $response->usage->completionTokens ?? 0,
-                'cache_write_tokens'=> $response->usage->cacheWriteInputTokens ?? 0,
+                'cache_write_tokens' => $response->usage->cacheWriteInputTokens ?? 0,
                 'cache_read_tokens' => $response->usage->cacheReadInputTokens ?? 0,
-                'reasoning_tokens'  => $response->usage->reasoningTokens ?? 0,
+                'reasoning_tokens' => $response->usage->reasoningTokens ?? 0,
             ]);
 
             $generation->update([
                 'tokens_used' => $totalTokens,
-                'status'      => 'success',
+                'status' => 'success',
             ]);
 
             return $parsed;
         } catch (\Throwable $e) {
             $generation->update([
-                'status'        => 'failed',
+                'status' => 'failed',
                 'error_message' => $e->getMessage(),
             ]);
 
@@ -104,7 +103,7 @@ class AIFormService
             '',
             $existingCode,
             '',
-            'Apply the following changes: ' . $prompt,
+            'Apply the following changes: '.$prompt,
             '',
             'Return the complete updated component. Keep all existing functionality unless explicitly asked to change it.',
         ]);
@@ -117,9 +116,9 @@ class AIFormService
         $generation = AiGeneration::create([
             'user_id' => $user->id,
             'form_id' => null,
-            'prompt'  => $prompt,
-            'model'   => 'claude-sonnet-4-6',
-            'status'  => 'pending',
+            'prompt' => $prompt,
+            'model' => 'claude-sonnet-4-6',
+            'status' => 'pending',
         ]);
 
         try {
@@ -127,18 +126,14 @@ class AIFormService
 
             $agent = HTMLFormBuilderAgent::make();
 
-            $theme = $this->resolveTheme($user);
-            if ($theme) {
-                $agent->withTheme($theme);
+            $attachments = $this->brandAttachments($user);
+            if ($attachments) {
+                $agent->withBrandScreenshot();
             }
 
-            $response = $agent->prompt($fullPrompt);
+            $response = $agent->prompt($fullPrompt, $attachments);
 
-            $parsed = json_decode($response->text, true);
-
-            if (! $parsed || ! isset($parsed['componentCode'])) {
-                throw new \RuntimeException('AI returned an invalid JSON structure.');
-            }
+            $parsed = $this->decodeComponentJson($response->text);
 
             $totalTokens = ($response->usage->promptTokens ?? 0)
                 + ($response->usage->completionTokens ?? 0);
@@ -152,10 +147,41 @@ class AIFormService
         }
     }
 
+    /**
+     * Decode the agent's JSON payload, tolerating a stray markdown code fence
+     * (```json … ```) or surrounding prose the model occasionally adds.
+     */
+    private function decodeComponentJson(string $text): array
+    {
+        $text = trim($text);
+
+        // Strip a leading/trailing markdown fence if present.
+        if (str_starts_with($text, '```')) {
+            $text = preg_replace('/^```[a-zA-Z]*\s*|\s*```$/', '', $text);
+        }
+
+        $parsed = json_decode($text, true);
+
+        // Fall back to the outermost { … } if there's leading/trailing prose.
+        if (! is_array($parsed)) {
+            $start = strpos($text, '{');
+            $end = strrpos($text, '}');
+            if ($start !== false && $end !== false && $end > $start) {
+                $parsed = json_decode(substr($text, $start, $end - $start + 1), true);
+            }
+        }
+
+        if (! is_array($parsed) || ! isset($parsed['componentCode'])) {
+            throw new \RuntimeException('AI returned an invalid JSON structure.');
+        }
+
+        return $parsed;
+    }
+
     private function buildPrompt(string $userPrompt, ?string $formUlid): string
     {
         $submitUrl = $formUlid
-            ? rtrim(config('app.url'), '/') . "/api/public/forms/{$formUlid}/submit"
+            ? rtrim(config('app.url'), '/')."/api/public/forms/{$formUlid}/submit"
             : '';
 
         return implode("\n", array_filter([
@@ -164,22 +190,35 @@ class AIFormService
         ]));
     }
 
-    private function resolveTheme(User $user): ?array
+    /**
+     * The merchant's website screenshot, as an image attachment for the model
+     * to derive brand styling from. Empty when no screenshot has been captured.
+     *
+     * Sent as base64 read straight off the storage disk (not a URL source), so
+     * it works regardless of whether the disk is publicly reachable.
+     *
+     * @return array<int, \Laravel\Ai\Files\Image>
+     */
+    private function brandAttachments(User $user): array
     {
         $theme = $user->theme;
 
-        if (! $theme) {
-            return null;
+        if (! $theme || $theme->screenshot_status !== 'done' || ! $theme->screenshot_url) {
+            return [];
         }
 
-        return array_filter([
-            'company_name'    => $theme->company_name,
-            'primary_color'   => $theme->primary_color,
-            'secondary_color' => $theme->secondary_color,
-            'accent_color'    => $theme->accent_color,
-            'font_family'     => $theme->font_family,
-            'logo_url'        => $theme->logo_url,
-            'description'     => $theme->description,
-        ]);
+        $disk = config('screenshot.disk');
+        $dir = trim((string) config('screenshot.directory'), '/');
+
+        // Derive the disk-relative key from the stored URL via the directory
+        // marker, so it survives the host changing (e.g. a new ngrok URL in dev).
+        $urlPath = parse_url($theme->screenshot_url, PHP_URL_PATH) ?: '';
+        $key = $dir.'/'.ltrim(Str::after($urlPath, '/'.$dir.'/'), '/');
+
+        if (! Storage::disk($disk)->exists($key)) {
+            return [];
+        }
+
+        return [Image::fromStorage($key, $disk)];
     }
 }

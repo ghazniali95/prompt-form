@@ -58,7 +58,6 @@ class WebsiteScreenshotService
 
     /**
      * Ensure a scheme is present and strip trailing slashes.
-     * Mirrors WebsiteIntelligenceService::normaliseUrl().
      */
     private function normaliseUrl(string $url): string
     {
