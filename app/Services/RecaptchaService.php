@@ -15,7 +15,7 @@ class RecaptchaService
      */
     public function verify(?string $token, string $expectedAction): bool
     {
-        if (! config('services.recaptcha.secret')) {
+        if (! config('services.recaptcha.enabled') || ! config('services.recaptcha.secret')) {
             return true;
         }
 

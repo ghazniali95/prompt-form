@@ -46,6 +46,7 @@ return [
     ],
 
     'recaptcha' => [
+        'enabled'   => env('RECAPTCHA_ENABLED', env('APP_ENV') !== 'local'),
         'site_key'  => env('RECAPTCHA_SITE_KEY'),
         'secret'    => env('RECAPTCHA_SECRET_KEY'),
         'threshold' => env('RECAPTCHA_THRESHOLD', 0.5),
