@@ -75,8 +75,9 @@ function BrandPreview({ data }) {
 // ── Step 1: URL input + scanning ──────────────────────────────────────────────
 
 function StepScan({ api, onScanned, onSkip }) {
-    const [url, setUrl]           = useState(`https://${window.__shopDomain || ''}`);
-    const [scanning, setScanning] = useState(false);
+    // Shopify merchants always have a known store URL, so we scan it
+    // automatically — the server resolves the storefront from the connected shop.
+    const [scanning, setScanning] = useState(true);
     const [scanStep, setScanStep] = useState(0);
     const [error, setError]       = useState('');
 
@@ -86,21 +87,23 @@ function StepScan({ api, onScanned, onSkip }) {
         return () => clearInterval(id);
     }, [scanning]);
 
-    const handleScan = async () => {
-        const trimmed = url.trim();
-        if (!trimmed) return;
+    const runScan = async () => {
         setError('');
         setScanning(true);
         setScanStep(0);
         try {
-            const { data } = await api.post('/api/v1/onboarding/scan', { url: trimmed });
+            const { data } = await api.post('/api/v1/onboarding/scan', {
+                url: `https://${window.__shopDomain || ''}`,
+            });
             onScanned(data.data);
         } catch (err) {
-            setError(err?.response?.data?.error ?? 'Could not scan the website. Please check the URL and try again.');
-        } finally {
+            setError(err?.response?.data?.error ?? 'Could not scan your store. Please try again.');
             setScanning(false);
         }
     };
+
+    // Kick off the scan on mount.
+    useEffect(() => { runScan(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <Card>
@@ -108,7 +111,7 @@ function StepScan({ api, onScanned, onSkip }) {
                 <BlockStack gap="200">
                     <Text variant="headingLg" as="h2">Set up your workspace</Text>
                     <Text tone="subdued">
-                        We've pre-filled your store URL. Hit Scan and we'll pull your brand colours, logo, and company info automatically.
+                        We're scanning your store to pull your brand colours, logo, and company info automatically.
                     </Text>
                 </BlockStack>
 
@@ -123,20 +126,8 @@ function StepScan({ api, onScanned, onSkip }) {
                     <BlockStack gap="400">
                         {error && <Banner tone="critical" onDismiss={() => setError('')}>{error}</Banner>}
 
-                        <TextField
-                            label="Website URL"
-                            value={url}
-                            onChange={setUrl}
-                            placeholder="https://yourstore.myshopify.com"
-                            autoComplete="off"
-                            connectedRight={
-                                <Button variant="primary" onClick={handleScan} disabled={!url.trim()}>
-                                    Scan
-                                </Button>
-                            }
-                        />
-
-                        <InlineStack align="start">
+                        <InlineStack align="start" gap="300">
+                            <Button variant="primary" onClick={runScan}>Try again</Button>
                             <Button variant="plain" tone="subdued" onClick={onSkip}>
                                 Skip and set up manually
                             </Button>

@@ -14,6 +14,7 @@
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.0",
         "rap2hpoutre/laravel-log-viewer": "^2.5",
+        "spatie/browsershot": "^5.4",
         "spatie/laravel-activitylog": "^4.12",
         "spatie/laravel-data": "^4.19",
         "stripe/stripe-php": "^20.1"

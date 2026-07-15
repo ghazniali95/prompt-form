@@ -13,6 +13,9 @@ class Theme extends Model
         'description',
         'logo_url',
         'favicon_url',
+        'screenshot_url',
+        'screenshot_status',
+        'screenshot_captured_at',
         'primary_color',
         'secondary_color',
         'accent_color',
@@ -24,8 +27,9 @@ class Theme extends Model
     protected function casts(): array
     {
         return [
-            'raw_data'  => 'array',
-            'is_active' => 'boolean',
+            'raw_data'               => 'array',
+            'is_active'              => 'boolean',
+            'screenshot_captured_at' => 'datetime',
         ];
     }
 

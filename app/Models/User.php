@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Theme;
 
 class User extends Authenticatable
 {
@@ -32,9 +31,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'     => 'datetime',
-            'password'              => 'hashed',
-            'onboarding_completed'  => 'boolean',
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'onboarding_completed' => 'boolean',
         ];
     }
 
@@ -48,6 +47,30 @@ class User extends Authenticatable
     public function integrations()
     {
         return $this->hasMany(Integration::class);
+    }
+
+    /**
+     * The website URL we already know for this user (their connected store),
+     * or null when we need to ask them for it. Shopify merchants are onboarded
+     * with their storefront domain, so we never ask them for a URL.
+     */
+    public function knownWebsiteUrl(): ?string
+    {
+        $shopify = $this->integrations()
+            ->where('type', 'shopify')
+            ->first();
+
+        if ($shopify?->name) {
+            // e.g. "mystore.myshopify.com" — redirects to the primary domain when captured.
+            return 'https://'.$shopify->name;
+        }
+
+        $woo = $this->integrations()
+            ->where('type', 'woocommerce')
+            ->whereNotNull('url')
+            ->first();
+
+        return $woo?->url ?: null;
     }
 
     public function forms()
