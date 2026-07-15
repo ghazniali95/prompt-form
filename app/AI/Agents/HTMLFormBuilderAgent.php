@@ -20,23 +20,30 @@ class HTMLFormBuilderAgent implements Agent, Conversational
     use Promptable;
 
     private array $messageHistory = [];
-    private ?array $theme = null;
+
+    private bool $hasBrandScreenshot = false;
 
     public function withMessages(array $messages): static
     {
         $this->messageHistory = $messages;
+
         return $this;
     }
 
-    public function withTheme(array $theme): static
+    /**
+     * Signal that a screenshot of the merchant's website is attached to the
+     * prompt so the model derives the brand styling from it visually.
+     */
+    public function withBrandScreenshot(): static
     {
-        $this->theme = $theme;
+        $this->hasBrandScreenshot = true;
+
         return $this;
     }
 
     public function instructions(): string
     {
-        $themeBlock = $this->theme ? $this->buildThemeBlock() : '';
+        $themeBlock = $this->hasBrandScreenshot ? $this->buildBrandScreenshotBlock() : '';
 
         return <<<PROMPT
 You are a specialized UI/UX Engineering Agent that builds bulletproof, responsive, and functional interactive form components. Your goal is to translate abstract user prompts into clean, component-isolated code structured explicitly inside a JSON payload.
@@ -108,37 +115,15 @@ PROMPT;
         );
     }
 
-    private function buildThemeBlock(): string
+    private function buildBrandScreenshotBlock(): string
     {
-        $t = $this->theme;
-
-        $lines = ['### Brand Theme (apply to this form):'];
-        $lines[] = 'The merchant has a saved brand theme. Apply it faithfully to the generated form. Override the default dark-mode palette with these brand values:';
+        $lines = ['### Brand Styling (from the attached website screenshot):'];
+        $lines[] = "A screenshot of the merchant's website is attached to this message. Study it and make the form look like a native part of that website. Override the default dark-mode palette with the brand you see:";
         $lines[] = '';
-
-        if (! empty($t['company_name'])) {
-            $lines[] = "- **Company name**: {$t['company_name']} (use in form heading/footer where appropriate)";
-        }
-        if (! empty($t['primary_color'])) {
-            $lines[] = "- **Primary colour** `{$t['primary_color']}`: use for the submit button background, active input borders, and primary accents — Tailwind: `bg-[{$t['primary_color']}]`, `border-[{$t['primary_color']}]`, `text-[{$t['primary_color']}]`";
-        }
-        if (! empty($t['secondary_color'])) {
-            $lines[] = "- **Secondary colour** `{$t['secondary_color']}`: use for the form card/container background or section headers — Tailwind: `bg-[{$t['secondary_color']}]`";
-        }
-        if (! empty($t['accent_color'])) {
-            $lines[] = "- **Accent colour** `{$t['accent_color']}`: use for hover states, focus rings, and decorative highlights — Tailwind: `hover:bg-[{$t['accent_color']}]`, `ring-[{$t['accent_color']}]`";
-        }
-        if (! empty($t['font_family'])) {
-            $lines[] = "- **Font family**: `{$t['font_family']}` — apply via inline style `fontFamily: '{$t['font_family']}, sans-serif'` on the root container only.";
-        }
-        if (! empty($t['logo_url'])) {
-            $lines[] = "- **Logo**: include an `<img src=\"{$t['logo_url']}\" />` at the top of the form with `className=\"h-10 object-contain mb-4\"`.";
-        }
-        if (! empty($t['description'])) {
-            $desc = addslashes($t['description']);
-            $lines[] = "- **Business context**: \"{$desc}\" — use this to write relevant placeholder text and success messages.";
-        }
-
+        $lines[] = '- **Colours**: extract the dominant brand palette from the screenshot — primary, secondary, and accent colours. Apply them with Tailwind arbitrary values, e.g. `bg-[#f97316]`, `border-[#f97316]`, `hover:bg-[#…]`, `ring-[#…]`. Use the primary colour for the submit button and primary accents.';
+        $lines[] = '- **Typography & tone**: match the general typographic style (serif / sans / rounded / condensed) and the overall visual tone (minimal, bold, playful, corporate) shown in the screenshot.';
+        $lines[] = '- **Backgrounds & surfaces**: mirror whether the site reads light or dark, and echo its card/surface treatment (borders, radius, shadows).';
+        $lines[] = '- **Do not** embed or fabricate the logo image — no `<img>` for the logo, since no logo URL is provided. Convey the brand through colour, type, and layout instead.';
         $lines[] = '';
         $lines[] = 'Ensure the form feels on-brand: consistent colour use, readable contrast ratios, and a polished professional layout.';
         $lines[] = '';
