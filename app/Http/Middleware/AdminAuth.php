@@ -10,10 +10,17 @@ class AdminAuth
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $username = config('admin.username');
-        $password = config('admin.password');
+        $username = (string) config('admin.username');
+        $password = (string) config('admin.password');
 
-        if ($request->getUser() !== $username || $request->getPassword() !== $password) {
+        // Unconfigured credentials must never grant access.
+        $configured = $username !== '' && $password !== '';
+
+        $matches = $configured
+            && hash_equals($username, (string) $request->getUser())
+            && hash_equals($password, (string) $request->getPassword());
+
+        if (! $matches) {
             return response('Unauthorized', 401, [
                 'WWW-Authenticate' => 'Basic realm="Admin Panel"',
             ]);
