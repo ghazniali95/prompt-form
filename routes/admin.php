@@ -9,5 +9,6 @@ Route::get('/admin/merchant/{id}',     [DashboardController::class, 'merchantPag
 Route::prefix('api/admin')->group(function () {
     Route::get('stats',           [DashboardController::class, 'stats']);
     Route::get('merchants',       [DashboardController::class, 'merchants']);
-    Route::get('merchants/{id}',  [DashboardController::class, 'merchantDetail']);
+    Route::get('merchants/{id}',  [DashboardController::class, 'merchantDetail'])->whereNumber('id');
+    Route::get('forms/{ulid}',    [DashboardController::class, 'formSource']);
 });
