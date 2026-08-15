@@ -15,14 +15,18 @@ class TokenExchangeService
      */
     public function exchangeAndResolveUser(string $shop, string $sessionToken): ?User
     {
-        $accessToken = $this->callTokenExchange($shop, $sessionToken);
+        $tokenData = $this->callTokenExchange($shop, $sessionToken);
 
-        if (! $accessToken) {
+        if (! $tokenData) {
             return null;
         }
 
         $integration = Integration::firstOrNew(['name' => $shop]);
-        $integration->token  = $accessToken;
+        $integration->token            = $tokenData['access_token'];
+        $integration->refresh_token    = $tokenData['refresh_token'];
+        $integration->token_expires_at = $tokenData['expires_in']
+            ? now()->addSeconds($tokenData['expires_in'])
+            : null;
         $integration->type   = 'shopify';
         $integration->status = true;
 
@@ -39,17 +43,34 @@ class TokenExchangeService
         return $integration->user;
     }
 
-    private function callTokenExchange(string $shop, string $sessionToken): ?string
+    /**
+     * The `expiring` flag asks Shopify for a rotating offline token, so the
+     * response carries a refresh_token + expires_in alongside the access_token.
+     * Without it Shopify issues a permanent offline token, which the Admin API
+     * stops accepting for public apps on 1 January 2027.
+     *
+     * @return array{access_token: string, refresh_token: ?string, expires_in: ?int}|null
+     */
+    private function callTokenExchange(string $shop, string $sessionToken): ?array
     {
-        $response = Http::post("https://{$shop}/admin/oauth/access_token", [
+        $response = Http::asForm()->post("https://{$shop}/admin/oauth/access_token", [
             'client_id'            => config('services.shopify.client_id'),
             'client_secret'        => config('services.shopify.client_secret'),
             'grant_type'           => 'urn:ietf:params:oauth:grant-type:token-exchange',
             'subject_token'        => $sessionToken,
             'subject_token_type'   => 'urn:ietf:params:oauth:token-type:id_token',
             'requested_token_type' => 'urn:shopify:params:oauth:token-type:offline-access-token',
+            'expiring'             => '1',
         ]);
 
-        return $response->successful() ? $response->json('access_token') : null;
+        if (! $response->successful() || ! $response->json('access_token')) {
+            return null;
+        }
+
+        return [
+            'access_token'  => $response->json('access_token'),
+            'refresh_token' => $response->json('refresh_token'),
+            'expires_in'    => $response->json('expires_in'),
+        ];
     }
 }

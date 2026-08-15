@@ -16,6 +16,8 @@ class Integration extends Authenticatable
         'name',
         'email',
         'token',
+        'refresh_token',
+        'token_expires_at',
         'secret',
         'type',
         'url',
@@ -25,14 +27,16 @@ class Integration extends Authenticatable
 
     protected $hidden = [
         'token',
+        'refresh_token',
         'remember_token',
     ];
 
     protected function casts(): array
     {
         return [
-            'status' => 'boolean',
-            'meta'   => 'array',
+            'status'           => 'boolean',
+            'meta'             => 'array',
+            'token_expires_at' => 'datetime',
         ];
     }
 
