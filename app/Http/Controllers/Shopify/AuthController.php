@@ -49,13 +49,13 @@ class AuthController extends Controller
             return response('Invalid state.', 401);
         }
 
-        $accessToken = $this->auth->exchangeCode($shop, $request->query('code', ''));
+        $tokenData = $this->auth->exchangeCode($shop, $request->query('code', ''));
 
-        if (! $accessToken) {
+        if (! $tokenData) {
             return response('Failed to obtain access token.', 500);
         }
 
-        $this->auth->upsertIntegration($shop, $accessToken);
+        $this->auth->upsertIntegration($shop, $tokenData);
 
         $host = $request->query('host', base64_encode($shop . '/admin'));
 

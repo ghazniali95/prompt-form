@@ -56,26 +56,48 @@ class AuthService
     }
 
     /**
-     * Exchange the OAuth code for a permanent access token.
+     * Exchange the OAuth code for an expiring offline access token.
+     *
+     * The `expiring` flag asks Shopify for a rotating offline token, so the
+     * response carries a refresh_token + expires_in alongside the access_token.
+     * Without it Shopify issues a permanent offline token, which the Admin API
+     * stops accepting for public apps on 1 January 2027.
+     *
+     * @return array{access_token: string, refresh_token: ?string, expires_in: ?int}|null
      */
-    public function exchangeCode(string $shop, string $code): ?string
+    public function exchangeCode(string $shop, string $code): ?array
     {
-        $response = Http::post("https://{$shop}/admin/oauth/access_token", [
+        $response = Http::asForm()->post("https://{$shop}/admin/oauth/access_token", [
             'client_id'     => config('services.shopify.client_id'),
             'client_secret' => config('services.shopify.client_secret'),
             'code'          => $code,
+            'expiring'      => '1',
         ]);
 
-        return $response->successful() ? $response->json('access_token') : null;
+        if (! $response->successful() || ! $response->json('access_token')) {
+            return null;
+        }
+
+        return [
+            'access_token'  => $response->json('access_token'),
+            'refresh_token' => $response->json('refresh_token'),
+            'expires_in'    => $response->json('expires_in'),
+        ];
     }
 
     /**
-     * Upsert the Integration record for a shop and store the access token.
+     * Upsert the Integration record for a shop and store the token set.
+     *
+     * @param array{access_token: string, refresh_token: ?string, expires_in: ?int} $tokenData
      */
-    public function upsertIntegration(string $shop, string $accessToken): Integration
+    public function upsertIntegration(string $shop, array $tokenData): Integration
     {
         $integration = Integration::firstOrNew(['name' => $shop]);
-        $integration->token  = $accessToken;
+        $integration->token            = $tokenData['access_token'];
+        $integration->refresh_token    = $tokenData['refresh_token'];
+        $integration->token_expires_at = $tokenData['expires_in']
+            ? now()->addSeconds($tokenData['expires_in'])
+            : null;
         $integration->type   = 'shopify';
         $integration->status = true;
 

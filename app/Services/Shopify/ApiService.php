@@ -16,6 +16,10 @@ class ApiService
      */
     public function graph(Integration $integration, string $query, array $variables = []): array
     {
+        // Every Shopify Admin call funnels through here, so this is the one
+        // place that has to guarantee the token is still valid.
+        $integration = TokenService::ensureFreshToken($integration);
+
         $version  = config('services.shopify.api_version');
         $endpoint = "https://{$integration->name}/admin/api/{$version}/graphql.json";
 
